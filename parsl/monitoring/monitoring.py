@@ -6,6 +6,7 @@ import time
 import typeguard
 import datetime
 import zmq
+from functools import wraps
 
 import queue
 from parsl.multiprocessing import forkProcess, sizedQueue, ForkProcess
@@ -326,6 +327,7 @@ class MonitoringHub(RepresentationMixin):
         """ Internal
         Wrap the Parsl app with a function that will call the monitor function and point it at the correct pid when the task begins.
         """
+        @wraps(f)
         def wrapped(*args: List[Any], **kwargs: Dict[str, Any]) -> Any:
             # Send first message to monitoring router
             send_first_message(try_id,
