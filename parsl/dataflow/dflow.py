@@ -1008,7 +1008,7 @@ class DataFlowKernel(object):
         ----------
         provider: Provider obj
            Provider for which scripts dirs are being created
-        channel: Channel obk
+        channel: Channel obj
            Channel over which the remote dirs are to be created
         """
         run_dir = self.run_dir
