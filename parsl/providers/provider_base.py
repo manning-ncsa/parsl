@@ -9,7 +9,7 @@ from parsl.channels.base import Channel
 logger = logging.getLogger(__name__)
 
 
-class JobState(Enum):
+class JobState(bytes, Enum):
     """Defines a set of states that a job can be in"""
     def __new__(cls, value: int, terminal: bool, status_name: str) -> "JobState":
         obj = bytes.__new__(cls, [value])
