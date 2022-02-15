@@ -9,16 +9,18 @@ from parsl.channels.base import Channel
 logger = logging.getLogger(__name__)
 
 
-# mypy can't typecheck the master version of JobState
-# I hope that this behaves the same.
-# The __repr__ is different at least - with master
-# version: >>> JobState.RUNNING
-# <JobState.RUNNING: 2>
-# with this version:
-# <JobState.RUNNING: (2, False)>
-
 class JobState(Enum):
     """Defines a set of states that a job can be in"""
+    def __new__(cls, value: int, terminal: bool, status_name: str) -> "JobState":
+        obj = bytes.__new__(cls, [value])
+        obj._value_ = value
+        obj.terminal = terminal
+        obj.status_name = status_name
+        return obj
+
+    value: int
+    terminal: bool
+    status_name: str
 
     UNKNOWN = (0, False, "UNKNOWN")
     PENDING = (1, False, "PENDING")
@@ -28,16 +30,6 @@ class JobState(Enum):
     FAILED = (5, True, "FAILED")
     TIMEOUT = (6, True, "TIMEOUT")
     HELD = (7, False, "HELD")
-
-    @property
-    def terminal(self) -> bool:
-        (_, state, _) = self.value
-        return state
-
-    @property
-    def status_name(self) -> str:
-        (_, _, state) = self.value
-        return state
 
 
 class JobStatus(object):
@@ -73,19 +65,15 @@ class JobStatus(object):
 
     @property
     def stdout(self) -> Optional[str]:
-        if self.stdout_path:
-            return self._read_file(self.stdout_path)
-        else:
-            return None
+        return self._read_file(self.stdout_path)
 
     @property
     def stderr(self) -> Optional[str]:
-        if self.stderr_path:
-            return self._read_file(self.stderr_path)
-        else:
-            return None
+        return self._read_file(self.stderr_path)
 
-    def _read_file(self, path: str) -> Optional[str]:
+    def _read_file(self, path: Optional[str]) -> Optional[str]:
+        if path is None:
+            return None
         try:
             with open(path, 'r') as f:
                 return f.read()
@@ -95,19 +83,13 @@ class JobStatus(object):
 
     @property
     def stdout_summary(self) -> Optional[str]:
-        if self.stdout_path:
-            return self._read_summary(self.stdout_path)
-        else:
-            return None
+        return self._read_summary(self.stdout_path)
 
     @property
     def stderr_summary(self) -> Optional[str]:
-        if self.stderr_path:
-            return self._read_summary(self.stderr_path)
-        else:
-            return None
+        return self._read_summary(self.stderr_path)
 
-    def _read_summary(self, path: str) -> Optional[str]:
+    def _read_summary(self, path: Optional[str]) -> Optional[str]:
         if not path:
             # can happen for synthetic job failures
             return None
