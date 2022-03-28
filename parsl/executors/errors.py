@@ -2,8 +2,6 @@
 from parsl.app.errors import ParslError
 from parsl.executors.base import ParslExecutor
 
-from typing import Optional
-
 
 class ExecutorError(ParslError):
     """Base class for executor related exceptions.
@@ -49,12 +47,8 @@ Please checkout {} for this feature".format(self.feature,
 class ScalingFailed(ExecutorError):
     """Scaling failed due to error in Execution provider."""
 
-    def __init__(self, executor_label: Optional[str], reason: str):
-        self.executor_label = executor_label
-        self.reason = reason
-
     def __str__(self):
-        return "Executor {0} scaling failed due to: {1}".format(self.executor_label, self.reason)
+        return "Executor {0} scaling failed due to: {1}".format(self.executor, self.reason)
 
 
 class DeserializationError(ExecutorError):

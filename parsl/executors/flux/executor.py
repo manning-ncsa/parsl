@@ -342,6 +342,7 @@ def _submit_flux_jobs(
     socket: zmq.Socket,
     working_dir: str,
     flux_executor_kwargs: Mapping,
+    executor: FluxExecutor,
     provider: ExecutionProvider,
     flux_path: str,
     launch_cmd: str,
@@ -364,7 +365,7 @@ def _submit_flux_jobs(
     )
     if not job_id:
         raise ScalingFailed(
-            provider.label, "Attempt to provision nodes via provider has failed",
+            executor, "Attempt to provision nodes via provider has failed",
         )
     # wait for the flux package path to be sent
     _check_provider_job(socket, provider, job_id)
