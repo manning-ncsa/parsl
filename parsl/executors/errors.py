@@ -4,6 +4,7 @@ from parsl.executors.base import ParslExecutor
 
 from typing import Optional
 
+
 class ExecutorError(ParslError):
     """Base class for executor related exceptions.
 
