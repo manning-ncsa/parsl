@@ -912,6 +912,8 @@ class DataFlowKernel(object):
 
         self.update_task_state(task_def, States.unsched)
 
+        self.update_task_state(task_def, States.unsched)
+
         app_fu = AppFuture(task_def)
 
         # Transform remote input files to data futures

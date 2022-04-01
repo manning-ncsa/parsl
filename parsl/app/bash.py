@@ -1,6 +1,7 @@
 from functools import update_wrapper
 from functools import partial
 from inspect import signature, Parameter
+import logging
 
 # for typing
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -14,6 +15,8 @@ from parsl.dataflow.dflow import DataFlowKernelLoader
 
 from parsl.dataflow.dflow import DataFlowKernel  # only for mypy
 
+logger = logging.getLogger(__name__)
+
 
 def remote_side_bash_executor(func: Callable[..., str], *args, **kwargs) -> int:
     """Executes the supplied function with *args and **kwargs to get a
@@ -26,7 +29,11 @@ def remote_side_bash_executor(func: Callable[..., str], *args, **kwargs) -> int:
     from parsl.data_provider.files import File
     from parsl.utils import get_std_fname_mode
 
-    func_name = func.__name__
+    if hasattr(func, '__name__'):
+        func_name = func.__name__
+    else:
+        logger.warning('No name for the function. Potentially a result of parsl#2233')
+        func_name = 'bash_app'
 
     executable = None
 

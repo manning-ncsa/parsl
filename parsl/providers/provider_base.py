@@ -33,7 +33,15 @@ class JobState(bytes, Enum):
 
 
 class JobStatus(object):
-    """Encapsulates a job state together with other details, presently a (error) message"""
+    """Encapsulates a job state together with other details:
+
+    Args:
+        state: The machine-reachable state of the job this status refers to
+        message: Optional human readable message
+        exit_code: Optional exit code
+        stdout_path: Optional path to a file containing the job's stdout
+        stderr_path: Optional path to a file containing the job's stderr
+    """
     SUMMARY_TRUNCATION_THRESHOLD = 2048
 
     # mypy as I have configured it requires an explicit optional here.

@@ -39,8 +39,8 @@ class ParslExecutor(metaclass=ABCMeta):
     # mypy doesn't actually check that the below are defined by
     # concrete subclasses - see  github.com/python/mypy/issues/4426
     # and maybe PEP-544 Protocols
+    label: str = "undefined"
 
-    label: str
     provider: ExecutionProvider
     managed: bool
     outstanding: Any  # what is this? used by strategy
