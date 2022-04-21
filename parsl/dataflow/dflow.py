@@ -1032,7 +1032,7 @@ class DataFlowKernel(object):
             executor.run_dir = self.run_dir
             executor.hub_address = self.hub_address
             executor.hub_port = self.hub_interchange_port
-            if hasattr(executor, 'provider'):
+            if executor.provider is not None:  # could be a protocol?
                 if hasattr(executor.provider, 'script_dir'):
                     executor.provider.script_dir = os.path.join(self.run_dir, 'submit_scripts')
                     os.makedirs(executor.provider.script_dir, exist_ok=True)
@@ -1128,6 +1128,18 @@ class DataFlowKernel(object):
             if executor.managed and not executor.bad_state_is_set:
                 if executor.scaling_enabled:
                     logger.info(f"Scaling in executor {executor.label}")
+
+                    # this block catches the complicated type situation
+                    # that an executor is managed but has no provider.
+                    # ideally the various ways of indicating that an
+                    # executor does provider scaling would be rationalised
+                    # to make this neater.
+                    if executor.provider is None:
+                        logger.error("There is no provider to perform scaling in")
+                        continue
+
+                    # what's the proof that there's a provider here?
+                    # some claim that "managed" implies that there is a provider?
                     job_ids = executor.provider.resources.keys()
                     block_ids = executor.scale_in(len(job_ids))
                     if self.monitoring and block_ids:

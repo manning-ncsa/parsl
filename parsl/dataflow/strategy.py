@@ -205,6 +205,12 @@ class Strategy(object):
 
             status = exec_status.status
 
+            # The provider might not even be defined -- what's the behaviour in
+            # that case?
+            if executor.provider is None:
+                logger.error("Trying to strategize an executor that has no provider")
+                continue
+
             # FIXME we need to handle case where provider does not define these
             # FIXME probably more of this logic should be moved to the provider
             min_blocks = executor.provider.min_blocks

@@ -39,14 +39,24 @@ class ParslExecutor(metaclass=ABCMeta):
     # mypy doesn't actually check that the below are defined by
     # concrete subclasses - see  github.com/python/mypy/issues/4426
     # and maybe PEP-544 Protocols
+
+    # however, recent sphinx gets upset about missing default values...
+
     label: str = "undefined"
 
-    provider: ExecutionProvider
-    managed: bool
-    outstanding: Any  # what is this? used by strategy
-    working_dir: Optional[str]
-    storage_access: Optional[Sequence[Staging]]
-    run_id: Optional[str]
+    provider: Optional[ExecutionProvider] = None
+    # this is wrong here. eg thread local executor has no provider.
+    # perhaps its better attached to the block scaling provider?
+
+    # i'm not particularly happy with this default,
+    # probably would be better specified via an __init__
+    # as a mandatory parameter
+    managed: bool = False
+
+    outstanding: Any = None  # what is this? used by strategy
+    working_dir: Optional[str] = None
+    storage_access: Optional[Sequence[Staging]] = None
+    run_id: Optional[str] = None
 
     def __enter__(self) -> "ParslExecutor":
         return self
