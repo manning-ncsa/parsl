@@ -9,11 +9,7 @@ class ExecutorError(ParslError):
     Only to be invoked when only a more specific error is not available.
     """
 
-    # TODO: this constructor doesn't make sense for most errors here
-    # so it and the __str__ impl shoudl go away, and the few places
-    # that an ExecutorError is directly instantiated shoudl be replaced
-    # by a more specific errror
-    def __init__(self, executor: ParslExecutor, reason):
+    def __init__(self, executor: ParslExecutor, reason: str):
         self.executor = executor
         self.reason = reason
 
@@ -48,7 +44,7 @@ class ScalingFailed(ExecutorError):
     """Scaling failed due to error in Execution provider."""
 
     def __str__(self):
-        return "Executor {0} scaling failed due to: {1}".format(self.executor, self.reason)
+        return f"Executor {self.executor.label} failed to scale due to: {self.reason}"
 
 
 class DeserializationError(ParslError):

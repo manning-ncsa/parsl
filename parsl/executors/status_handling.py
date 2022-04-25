@@ -181,7 +181,7 @@ class BlockProviderExecutor(ParslExecutor):
         logger.debug("Launched block {}->{}".format(block_id, job_id))
         if not job_id:
             raise ScalingFailed(self,
-                                "Attempts to provision nodes via provider has failed")
+                                "Attempt to provision nodes did not return a job ID")
         return job_id
 
     @abstractmethod

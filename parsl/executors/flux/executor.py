@@ -221,6 +221,7 @@ class FluxExecutor(NoStatusHandlingExecutor, RepresentationMixin):
                 self.working_dir,
                 self.flux_executor_kwargs,
                 self.provider,
+                self,
                 self.flux_path,
                 self.launch_cmd,
             ),
@@ -342,8 +343,8 @@ def _submit_flux_jobs(
     socket: zmq.Socket,
     working_dir: str,
     flux_executor_kwargs: Mapping,
-    executor: FluxExecutor,
     provider: ExecutionProvider,
+    executor: FluxExecutor,
     flux_path: str,
     launch_cmd: str,
 ):
