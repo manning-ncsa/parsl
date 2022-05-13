@@ -6,8 +6,8 @@ import queue
 import datetime
 import pickle
 from multiprocessing import Queue
-from typing import Dict  # noqa F401 (used in type annotation)
-from typing import List, Optional, Tuple, Union, Any, Sequence
+from typing import Dict, Sequence  # noqa F401 (used in type annotation)
+from typing import List, Optional, Tuple, Union, Any
 import math
 
 from parsl.serialize import pack_apply_message, deserialize
@@ -140,6 +140,15 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
         "alternating" to assign cores to workers in round-robin
         (ex: assign 0,2 to worker 0, 1,3 to worker 1).
 
+    available_accelerators: int | list
+        Accelerators available for workers to use. Each worker will be pinned to exactly one of the provided
+        accelerators, and no more workers will be launched than the number of accelerators.
+
+        Either provide the list of accelerator names or the number available. If a number is provided,
+        Parsl will create names as integers starting with 0.
+
+        default: empty list
+
     prefetch_capacity : int
         Number of tasks that could be prefetched over available worker capacity.
         When there are a few tasks (<100) or when tasks are long running, this option should
@@ -184,6 +193,7 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
                  mem_per_worker: Optional[float] = None,
                  max_workers: Union[int, float] = float('inf'),
                  cpu_affinity: str = 'none',
+                 available_accelerators: Union[int, Sequence[str]] = (),
                  prefetch_capacity: int = 0,
                  heartbeat_threshold: int = 120,
                  heartbeat_period: int = 30,
@@ -222,7 +232,16 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
                 self.provider.cores_per_node is not None:
             cpu_slots = math.floor(self.provider.cores_per_node / cores_per_worker)
 
+        # Set the list of available accelerators
+        if isinstance(available_accelerators, int):
+            # If the user provide an integer, create some names for them
+            available_accelerators = list(map(str, range(available_accelerators)))
+        self.available_accelerators = list(available_accelerators)
+
+        # Determine the number of workers per node
         self._workers_per_node = min(max_workers, mem_slots, cpu_slots)
+        if len(self.available_accelerators) > 0:
+            self._workers_per_node = min(self._workers_per_node, len(available_accelerators))
         if self._workers_per_node == float('inf'):
             self._workers_per_node = 1  # our best guess-- we do not have any provider hints
 
@@ -259,7 +278,8 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
                                "--hb_period={heartbeat_period} "
                                "{address_probe_timeout_string} "
                                "--hb_threshold={heartbeat_threshold} "
-                               "--cpu-affinity {cpu_affinity} ")
+                               "--cpu-affinity {cpu_affinity} "
+                               "--available-accelerators {accelerators}")
 
     def initialize_scaling(self) -> List[str]:
         """ Compose the launch command and call the scale_out
@@ -291,7 +311,8 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
                                        heartbeat_threshold=self.heartbeat_threshold,
                                        poll_period=self.poll_period,
                                        logdir=worker_logdir,
-                                       cpu_affinity=self.cpu_affinity)
+                                       cpu_affinity=self.cpu_affinity,
+                                       accelerators=" ".join(self.available_accelerators))
         self.launch_cmd = l_cmd
         logger.debug("Launch command: {}".format(self.launch_cmd))
 
