@@ -281,6 +281,8 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
                                "--cpu-affinity {cpu_affinity} "
                                "--available-accelerators {accelerators}")
 
+    radio_mode = "htex"
+
     def initialize_scaling(self) -> List[str]:
         """ Compose the launch command and call the scale_out
 
