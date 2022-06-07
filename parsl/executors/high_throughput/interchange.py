@@ -390,9 +390,9 @@ class Interchange(object):
                         msg = json.loads(message[1].decode('utf-8'))
                         reg_flag = True
                     except Exception:
-                        logger.warning("[MAIN] Got Exception reading registration message from manager: {}".format(
+                        logger.warning("[MAIN] Got Exception reading registration message from manager: {!r}".format(
                             manager), exc_info=True)
-                        logger.debug("[MAIN] Message :\n{}\n".format(message[0]))
+                        logger.debug("[MAIN] Message:\n{!r}\n".format(message[0]))
                     else:
                         # We set up an entry only if registration works correctly
                         self._ready_manager_queue[manager] = {'last_heartbeat': time.time(),
@@ -405,14 +405,14 @@ class Interchange(object):
                                                               'tasks': []}
                     if reg_flag is True:
                         interesting_managers.add(manager)
-                        logger.info("[MAIN] Adding manager: {} to ready queue".format(manager))
+                        logger.info("[MAIN] Adding manager: {!r} to ready queue".format(manager))
                         self._ready_manager_queue[manager].update(msg)
-                        logger.info("[MAIN] Registration info for manager {}: {}".format(manager, msg))
+                        logger.info("[MAIN] Registration info for manager {!r}: {}".format(manager, msg))
                         self._send_monitoring_info(hub_channel, manager)
 
                         if (msg['python_v'].rsplit(".", 1)[0] != self.current_platform['python_v'].rsplit(".", 1)[0] or
                             msg['parsl_v'] != self.current_platform['parsl_v']):
-                            logger.warning("[MAIN] Manager {} has incompatible version info with the interchange".format(manager))
+                            logger.warning("[MAIN] Manager {!r} has incompatible version info with the interchange".format(manager))
                             logger.debug("Setting kill event")
                             self._kill_event.set()
                             e = VersionMismatch("py.v={} parsl.v={}".format(self.current_platform['python_v'].rsplit(".", 1)[0],
@@ -425,22 +425,22 @@ class Interchange(object):
                             self.results_outgoing.send(pkl_package)
                             logger.warning("[MAIN] Sent failure reports, unregistering manager")
                         else:
-                            logger.info("[MAIN] Manager {} has compatible Parsl version {}".format(manager, msg['parsl_v']))
-                            logger.info("[MAIN] Manager {} has compatible Python version {}".format(manager,
-                                                                                                    msg['python_v'].rsplit(".", 1)[0]))
+                            logger.info("[MAIN] Manager {!r} has compatible Parsl version {}".format(manager, msg['parsl_v']))
+                            logger.info("[MAIN] Manager {!r} has compatible Python version {}".format(manager,
+                                                                                                      msg['python_v'].rsplit(".", 1)[0]))
                     else:
                         # Registration has failed.
-                        logger.debug("[MAIN] Suppressing bad registration from manager:{}".format(
+                        logger.debug("[MAIN] Suppressing bad registration from manager: {!r}".format(
                             manager))
 
                 else:
                     tasks_requested = int.from_bytes(message[1], "little")
                     self._ready_manager_queue[manager]['last_heartbeat'] = time.time()
                     if tasks_requested == HEARTBEAT_CODE:
-                        logger.debug("[MAIN] Manager {} sent heartbeat via tasks connection".format(manager))
+                        logger.debug("[MAIN] Manager {!r} sent heartbeat via tasks connection".format(manager))
                         self.task_outgoing.send_multipart([manager, b'', PKL_HEARTBEAT_CODE])
                     else:
-                        logger.debug("[MAIN] Manager {} requested {} tasks".format(manager, tasks_requested))
+                        logger.debug("[MAIN] Manager {!r} requested {} tasks".format(manager, tasks_requested))
                         self._ready_manager_queue[manager]['free_capacity'] = tasks_requested
                         interesting_managers.add(manager)
                 logger.debug("[MAIN] leaving task_outgoing section")
@@ -471,12 +471,12 @@ class Interchange(object):
                             self._ready_manager_queue[manager]['free_capacity'] -= task_count
                             self._ready_manager_queue[manager]['tasks'].extend(tids)
                             self._ready_manager_queue[manager]['idle_since'] = None
-                            logger.debug("[MAIN] Sent tasks: {} to manager {}".format(tids, manager))
+                            logger.debug("[MAIN] Sent tasks: {} to manager {!r}".format(tids, manager))
                             if self._ready_manager_queue[manager]['free_capacity'] > 0:
-                                logger.debug("[MAIN] Manager {} has free_capacity {}".format(manager, self._ready_manager_queue[manager]['free_capacity']))
+                                logger.debug("[MAIN] Manager {!r} has free_capacity {}".format(manager, self._ready_manager_queue[manager]['free_capacity']))
                                 # ... so keep it in the interesting_managers list
                             else:
-                                logger.debug("[MAIN] Manager {} is now saturated".format(manager))
+                                logger.debug("[MAIN] Manager {!r} is now saturated".format(manager))
                                 interesting_managers.remove(manager)
                     else:
                         interesting_managers.remove(manager)
@@ -489,7 +489,7 @@ class Interchange(object):
                 logger.debug("[MAIN] entering results_incoming section")
                 manager, *b_messages = self.results_incoming.recv_multipart()
                 if manager not in self._ready_manager_queue:
-                    logger.warning("[MAIN] Received a result from a un-registered manager: {}".format(manager))
+                    logger.warning("[MAIN] Received a result from a un-registered manager: {!r}".format(manager))
                 else:
                     logger.debug("[MAIN] Got {} result items in batch".format(len(b_messages)))
                     for b_message in b_messages:
@@ -498,10 +498,10 @@ class Interchange(object):
                             if int(r['task_id']) != -1:
                                 self._ready_manager_queue[manager]['tasks'].remove(r['task_id'])
                             elif 'heartbeat' in r:
-                                logger.debug("[MAIN] Manager {} sent heartbeat via results connection".format(manager))
+                                logger.debug("[MAIN] Manager {!r} sent heartbeat via results connection".format(manager))
                         except Exception:
                             # If we reach here, there's something very wrong.
-                            logger.exception("Ignoring exception removing task_id {} for manager {} with task list {}".format(
+                            logger.exception("Ignoring exception removing task_id {} for manager {!r} with task list {}".format(
                                 r['task_id'],
                                 manager,
                                 self._ready_manager_queue[manager]['tasks']))
@@ -516,7 +516,7 @@ class Interchange(object):
                             time.time() - self._ready_manager_queue[manager]['last_heartbeat'] > self.heartbeat_threshold]
             for manager in bad_managers:
                 logger.debug("[MAIN] Last: {} Current: {}".format(self._ready_manager_queue[manager]['last_heartbeat'], time.time()))
-                logger.warning("[MAIN] Too many heartbeats missed for manager {}".format(manager))
+                logger.warning("[MAIN] Too many heartbeats missed for manager {!r}".format(manager))
                 if self._ready_manager_queue[manager]['active']:
                     self._ready_manager_queue[manager]['active'] = False
                     self._send_monitoring_info(hub_channel, manager)
