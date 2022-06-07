@@ -27,6 +27,11 @@ class ParslExecutor(metaclass=ABCMeta):
        label: str - a human readable label for the executor, unique
               with respect to other executors.
 
+    Per-executor monitoring behaviour can be influenced by exposing:
+
+       radio_mode: str - a string describing which radio mode should be used to
+              send task resource data back to the submit side.
+
     An executor may optionally expose:
 
        storage_access: Sequence[parsl.data_provider.staging.Staging] - a sequence of staging
@@ -43,6 +48,7 @@ class ParslExecutor(metaclass=ABCMeta):
     # however, recent sphinx gets upset about missing default values...
 
     label: str = "undefined"
+    radio_mode: str = "udp"
 
     provider: Optional[ExecutionProvider] = None
     # this is wrong here. eg thread local executor has no provider.
