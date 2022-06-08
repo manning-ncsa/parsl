@@ -278,7 +278,7 @@ class MonitoringHub(RepresentationMixin):
         self.resource_monitoring_enabled = resource_monitoring_enabled
         self.resource_monitoring_interval = resource_monitoring_interval
 
-    def start(self, run_id: str) -> int:
+    def start(self, run_id: str, run_dir: str) -> int:
 
         if self.logdir is None:
             self.logdir = "."
@@ -395,7 +395,8 @@ class MonitoringHub(RepresentationMixin):
                         logging_level: int,
                         sleep_dur: float,
                         radio_mode: str,
-                        monitor_resources: bool) -> Callable:
+                        monitor_resources: bool,
+                        run_dir: str) -> Callable:
         """ Internal
         Wrap the Parsl app with a function that will call the monitor function and point it at the correct pid when the task begins.
         """
@@ -406,7 +407,8 @@ class MonitoringHub(RepresentationMixin):
                                task_id,
                                monitoring_hub_url,
                                run_id,
-                               radio_mode)
+                               radio_mode,
+                               run_dir)
 
             p: Optional[ForkProcess]
             if monitor_resources:
@@ -419,7 +421,7 @@ class MonitoringHub(RepresentationMixin):
                                       run_id,
                                       radio_mode,
                                       logging_level,
-                                      sleep_dur),
+                                      sleep_dur, run_dir),
                                 name="Monitor-Wrapper-{}".format(task_id))
                 pp.start()
                 p = pp
@@ -641,7 +643,7 @@ def router_starter(comm_q: "queue.Queue[Union[Tuple[int, int], str]]",
 def send_first_message(try_id: int,
                        task_id: int,
                        monitoring_hub_url: str,
-                       run_id: str, radio_mode: str) -> None:
+                       run_id: str, radio_mode: str, run_dir: str) -> None:
     import platform
     import os
 
@@ -675,7 +677,7 @@ def monitor(pid: int,
             run_id: str,
             radio_mode: str,
             logging_level: int = logging.INFO,
-            sleep_dur: float = 10) -> None:
+            sleep_dur: float = 10, run_dir: str = "./") -> None:
     """Internal
     Monitors the Parsl task's resources by pointing psutil to the task's pid and watching it and its children.
 
