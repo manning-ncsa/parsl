@@ -149,18 +149,22 @@ class ExecutionProvider(metaclass=ABCMeta):
                                 +-------------------
      """
 
-    # these are because these variables are implemented
-    # as properties...
-    _cores_per_node = None  # type: Optional[int]
-    _mem_per_node = None  # type: Optional[float]
+    """ These are not class attributes... this is the wrong way to specify them
 
-    min_blocks: int
-    max_blocks: int
-    init_blocks: int
-    nodes_per_block: int
-    script_dir: Optional[str]
-    parallelism: float  # TODO not sure about this one?
-    resources: Dict[object, Any]  # I think the contents of this are provider-specific?
+    """
+
+    @abstractmethod
+    def __init__(self) -> None:
+        self.min_blocks: int
+        self.max_blocks: int
+        self.init_blocks: int
+        self.nodes_per_block: int
+        self.script_dir: Optional[str]
+        self.parallelism: float  # TODO not sure about this one?
+        self.resources: Dict[object, Any]  # I think the contents of this are provider-specific?
+        self._cores_per_node = None  # type: Optional[int]
+        self._mem_per_node = None  # type: Optional[float]
+        pass
 
     @abstractmethod
     def submit(self, command: str, tasks_per_node: int, job_name: str = "parsl.auto") -> object:
@@ -271,9 +275,14 @@ class ExecutionProvider(metaclass=ABCMeta):
 
 class Channeled():
     """A marker type to indicate that parsl should manage a Channel for this provider"""
-    channel: Channel
+    def __init__(self) -> None:  # TODO make abstract?
+        self.channel: Channel
+        pass
 
 
 class MultiChanneled():
     """A marker type to indicate that parsl should manage Channels for this provider"""
-    channels: List[Channel]
+
+    def __init__(self) -> None:  # TODO make abstract?
+        self.channels: List[Channel]
+        pass
