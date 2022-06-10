@@ -394,10 +394,10 @@ class MonitoringHub(RepresentationMixin):
         self.dbm_proc.start()
         self.logger.info("Started the router process {} and DBM process {}".format(self.router_proc.pid, self.dbm_proc.pid))
 
-        self.filesystem_proc = Process(target=filesystem_receiver,
-                                       args=(self.logdir, self.resource_msgs, run_dir),
-                                       name="Monitoring-Filesystem-Process",
-                                       daemon=True
+        self.filesystem_proc = forkProcess(target=filesystem_receiver,
+                                           args=(self.logdir, self.resource_msgs, run_dir),
+                                           name="Monitoring-Filesystem-Process",
+                                           daemon=True
         )
         self.filesystem_proc.start()
         self.logger.info(f"Started filesystem radio receiver process {self.filesystem_proc.pid}")
