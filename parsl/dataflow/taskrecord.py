@@ -13,14 +13,27 @@ from parsl.dataflow.states import States
 
 
 class TaskRecord(TypedDict, total=False):
+    """This stores most information about a Parsl task"""
+
     func_name: str
+
     status: States
+
     depends: List[Future]
 
     app_fu: "AppFuture"
+    """The Future which was returned to the user when an app was invoked.
+    """
+
     exec_fu: Optional[Future]
+    """When a task has been launched on an executor, stores the Future
+    returned by that executor.
+    """
 
     executor: str
+    """The name of the executor which this task will be/is being/was
+    executed on.
+    """
 
     retries_left: int
     fail_count: int
@@ -28,9 +41,22 @@ class TaskRecord(TypedDict, total=False):
     fail_history: List[str]
 
     checkpoint: bool  # this change is also in #1516
+    """Should this task be checkpointed?
+    """
+
     hashsum: Optional[str]  # hash for checkpointing/memoization.
+    """The hash used for checkpointing and memoisation. This is not known
+    until at least all relevant dependencies have completed, and will be
+    None before that.
+    """
 
     task_launch_lock: threading.Lock
+    """This lock is used to ensure that task launch only happens once.
+    A task can be launched by dependencies completing from arbitrary
+    threads, and a race condition would exist when dependencies complete
+    in multiple threads very close together in time, which this lock
+    prevents.
+    """
 
     # these three could be more strongly typed perhaps but I'm not thinking about that now
     func: Callable
@@ -44,6 +70,7 @@ class TaskRecord(TypedDict, total=False):
     try_time_returned: Optional[datetime.datetime]
 
     memoize: bool
+    """Should this task be memoized?"""
     ignore_for_cache: Sequence[str]
     from_memo: Optional[bool]
 
@@ -53,4 +80,7 @@ class TaskRecord(TypedDict, total=False):
     resource_specification: Dict[str, Any]
 
     join: bool
+    """Is this a join_app?"""
     joins: Optional[Future]
+    """If this is a join app and the python body has executed, then this
+    contains the Future that the join app will join."""
