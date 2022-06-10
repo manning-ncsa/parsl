@@ -117,7 +117,7 @@ class TaskStatusPoller(object):
         self._strategy = Strategy(dfk)
         self._error_handler = JobErrorHandler()
 
-    def poll(self, tasks: Optional[Sequence[str]] = None, kind: Optional[str] = None) -> None:
+    def poll(self, tasks: Optional[Sequence[str]] = None) -> None:
         self._update_state()
 
         # List is invariant, and the type of _poll_items if List[PollItem]

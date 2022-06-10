@@ -94,7 +94,7 @@ class FlowControl(object):
                 return
 
             if prev == self._wake_up_time:
-                self.make_callback(kind='timer')
+                self.make_callback()
             else:
                 print("Sleeping a bit more")
 
@@ -104,18 +104,14 @@ class FlowControl(object):
         self._event_count += 1
         if self._event_count >= self.threshold:
             logger.debug("Eventcount >= threshold")
-            self.make_callback(kind="event")
+            self.make_callback()
 
-    def make_callback(self, kind: Optional[str] = None) -> None:
+    def make_callback(self) -> None:
         """Makes the callback and resets the timer.
-
-        KWargs:
-               - kind (str): Default=None, used to pass information on what
-                 triggered the callback
         """
         self._wake_up_time = time.time() + self.interval
         try:
-            self.callback(tasks=self._event_buffer, kind=kind)
+            self.callback(tasks=self._event_buffer)
         except Exception:
             logger.error("Flow control callback threw an exception - logging and proceeding anyway", exc_info=True)
         self._event_buffer = []
@@ -197,11 +193,11 @@ class Timer(object):
                 return
 
             if prev == self._wake_up_time:
-                self.make_callback(kind='timer')
+                self.make_callback()
             else:
                 print("Sleeping a bit more")
 
-    def make_callback(self, kind: Optional[str] = None) -> None:
+    def make_callback(self) -> None:
         """Makes the callback and resets the timer.
         """
         self._wake_up_time = time.time() + self.interval
