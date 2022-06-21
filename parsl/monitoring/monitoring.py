@@ -346,19 +346,9 @@ class MonitoringHub(RepresentationMixin):
         os.makedirs(self.logdir, exist_ok=True)
 
         # Initialize the ZMQ pipe to the Parsl Client
-        self.logger.info("Monitoring Hub initialized")
 
         self.logger.debug("Initializing ZMQ Pipes to client")
         self.monitoring_hub_active = True
-        self.dfk_channel_timeout = 10000  # in milliseconds
-        self._context = zmq.Context()
-        self._dfk_channel = self._context.socket(zmq.DEALER)
-
-        self._dfk_channel.setsockopt(zmq.SNDTIMEO, self.dfk_channel_timeout)
-        self._dfk_channel.set_hwm(0)
-        self.dfk_port = self._dfk_channel.bind_to_random_port("tcp://{}".format(self.client_address),
-                                                              min_port=self.client_port_range[0],
-                                                              max_port=self.client_port_range[1])
 
         comm_q = sizedQueue(maxsize=10)  # type: Queue[Union[Tuple[int, int], str]]
         self.exception_q = sizedQueue(maxsize=10)  # type: Queue[Tuple[str, str]]
@@ -372,8 +362,6 @@ class MonitoringHub(RepresentationMixin):
                                        kwargs={"hub_address": self.hub_address,
                                                "hub_port": self.hub_port,
                                                "hub_port_range": self.hub_port_range,
-                                               "client_address": self.client_address,
-                                               "client_port": self.dfk_port,
                                                "logdir": self.logdir,
                                                "logging_level": logging.DEBUG if self.monitoring_debug else logging.INFO,
                                                "run_id": run_id
@@ -416,6 +404,17 @@ class MonitoringHub(RepresentationMixin):
         udp_port, ic_port = comm_q_result
 
         self.monitoring_hub_url = "udp://{}:{}".format(self.hub_address, udp_port)
+
+        context = zmq.Context()
+        self.dfk_channel_timeout = 10000  # in milliseconds
+        self._dfk_channel = context.socket(zmq.DEALER)
+        self._dfk_channel.setsockopt(zmq.LINGER, 0)
+        self._dfk_channel.set_hwm(0)
+        self._dfk_channel.setsockopt(zmq.SNDTIMEO, self.dfk_channel_timeout)
+        self._dfk_channel.connect("tcp://{}:{}".format(self.hub_address, ic_port))
+
+        self.logger.info("Monitoring Hub initialized")
+
         return ic_port
 
     # TODO: tighten the Any message format
@@ -507,6 +506,11 @@ class MonitoringHub(RepresentationMixin):
             try:
                 return f(*args, **kwargs)
             finally:
+                send_last_message(try_id,
+                                  task_id,
+                                  monitoring_hub_url,
+                                  run_id,
+                                  radio_mode, run_dir)
                 # There's a chance of zombification if the workers are killed by some signals
                 if p:
                     p.terminate()
@@ -558,9 +562,6 @@ class MonitoringRouter:
                  hub_port: Optional[int] = None,
                  hub_port_range: Tuple[int, int] = (55050, 56000),
 
-                 client_address: str = "127.0.0.1",
-                 client_port: Optional[Tuple[int, int]] = None,
-
                  monitoring_hub_address: str = "127.0.0.1",
                  logdir: str = ".",
                  run_id: str,
@@ -578,10 +579,6 @@ class MonitoringRouter:
         hub_port_range : tuple(int, int)
              The MonitoringHub picks ports at random from the range which will be used by Hub.
              This is overridden when the hub_port option is set. Default: (55050, 56000)
-        client_address : str
-             The ip address at which the dfk will be able to reach Hub. Default: "127.0.0.1"
-        client_port : tuple(int, int)
-             The port at which the dfk will be able to reach Hub. Default: None
         logdir : str
              Parsl log directory paths. Logs and temp files go here. Default: '.'
         logging_level : int
@@ -618,12 +615,6 @@ class MonitoringRouter:
         self.logger.info("Initialized the UDP socket on 0.0.0.0:{}".format(self.hub_port))
 
         self._context = zmq.Context()
-        self.dfk_channel = self._context.socket(zmq.DEALER)
-        self.dfk_channel.setsockopt(zmq.LINGER, 0)
-        self.dfk_channel.set_hwm(0)
-        self.dfk_channel.RCVTIMEO = int(self.loop_freq)  # in milliseconds
-        self.dfk_channel.connect("tcp://{}:{}".format(client_address, client_port))
-
         self.ic_channel = self._context.socket(zmq.DEALER)
         self.ic_channel.setsockopt(zmq.LINGER, 0)
         self.ic_channel.set_hwm(0)
@@ -649,26 +640,8 @@ class MonitoringRouter:
                     pass
 
                 try:
-                    msg = self.dfk_channel.recv_pyobj()
-                    self.logger.debug("Got ZMQ Message from DFK: {}".format(msg))
-                    if msg[0] == MessageType.BLOCK_INFO:
-                        block_msgs.put((msg, 0))
-                    else:
-                        priority_msgs.put((msg, 0))
-                    if msg[0] == MessageType.WORKFLOW_INFO and 'exit_now' in msg[1] and msg[1]['exit_now']:
-                        break
-                except zmq.Again:
-                    pass
-                except Exception:
-                    # This will catch malformed messages. What happens if the
-                    # dfk_channel is broken in such a way that it always raises
-                    # an exception? Looping on this would maybe be the wrong
-                    # thing to do.
-                    self.logger.warning("Failure processing a DFK ZMQ message", exc_info=True)
-
-                try:
                     msg = self.ic_channel.recv_pyobj()
-                    self.logger.debug("Got ZMQ Message from interchange: {}".format(msg))
+                    self.logger.debug("Got ZMQ Message: {}".format(msg))
                     assert isinstance(msg, tuple), "IC Channel expects only tuples, got {}".format(msg)
                     assert len(msg) >= 1, "IC Channel expects tuples of length at least 1, got {}".format(msg)
                     if msg[0] == MessageType.NODE_INFO:
@@ -684,10 +657,31 @@ class MonitoringRouter:
                         resource_msgs.put(cast(Any, (msg, 0)))
                     elif msg[0] == MessageType.BLOCK_INFO:
                         block_msgs.put(cast(Any, (msg, 0)))
+                    elif msg[0] == MessageType.TASK_INFO:
+                        # priority_msgs has a particular message format
+                        # that msg doesn't necessarily match unless msg[0] == TASK_INFO
+                        # which can't be expressed either as mypy types or
+                        # as assert isinstanceof
+                        # so cast to any here
+                        # it might be better to let msg stay as Any rather than
+                        # messing with type annotations, and instead do the
+                        # message format descriptions as human readable text?
+                        # which is not machine checkable... but this is not machine checkable.
+                        priority_msgs.put((cast(Any, msg), 0))
+                    elif msg[0] == MessageType.WORKFLOW_INFO:
+                        priority_msgs.put((cast(Any, msg), 0))
+                        if 'exit_now' in msg[1] and msg[1]['exit_now']:
+                            break
                     else:
                         self.logger.error(f"Discarding message from interchange with unknown type {msg[0].value}")
                 except zmq.Again:
                     pass
+                except Exception:
+                    # This will catch malformed messages. What happens if the
+                    # channel is broken in such a way that it always raises
+                    # an exception? Looping on this would maybe be the wrong
+                    # thing to do.
+                    self.logger.warning("Failure processing a ZMQ message", exc_info=True)
 
             self.logger.info("Monitoring router draining")
             last_msg_received_time = time.time()
@@ -718,9 +712,6 @@ def router_starter(comm_q: "queue.Queue[Union[Tuple[int, int], str]]",
                    hub_port: Optional[int],
                    hub_port_range: Tuple[int, int],
 
-                   client_address: str,
-                   client_port: Optional[Tuple[int, int]],
-
                    logdir: str,
                    logging_level: int,
                    run_id: str) -> None:
@@ -729,8 +720,6 @@ def router_starter(comm_q: "queue.Queue[Union[Tuple[int, int], str]]",
         router = MonitoringRouter(hub_address=hub_address,
                                   hub_port=hub_port,
                                   hub_port_range=hub_port_range,
-                                  client_address=client_address,
-                                  client_port=client_port,
                                   logdir=logdir,
                                   logging_level=logging_level,
                                   run_id=run_id)
@@ -755,6 +744,24 @@ def send_first_message(try_id: int,
                        task_id: int,
                        monitoring_hub_url: str,
                        run_id: str, radio_mode: str, run_dir: str) -> None:
+    send_first_last_message(try_id, task_id, monitoring_hub_url, run_id,
+                            radio_mode, run_dir, False)
+
+
+@wrap_with_logs
+def send_last_message(try_id: int,
+                      task_id: int,
+                      monitoring_hub_url: str,
+                      run_id: str, radio_mode: str, run_dir: str) -> None:
+    send_first_last_message(try_id, task_id, monitoring_hub_url, run_id,
+                            radio_mode, run_dir, True)
+
+
+def send_first_last_message(try_id: int,
+                            task_id: int,
+                            monitoring_hub_url: str,
+                            run_id: str, radio_mode: str, run_dir: str,
+                            is_last: bool) -> None:
     import platform
     import os
 
@@ -776,7 +783,8 @@ def send_first_message(try_id: int,
            'task_id': task_id,
            'hostname': platform.node(),
            'block_id': os.environ.get('PARSL_WORKER_BLOCK_ID'),
-           'first_msg': True,
+           'first_msg': not is_last,
+           'last_msg': is_last,
            'timestamp': datetime.datetime.now()
     }
     radio.send(msg)
@@ -842,6 +850,7 @@ def monitor(pid: int,
             d['resource_monitoring_interval'] = sleep_dur
             d['hostname'] = platform.node()
             d['first_msg'] = False
+            d['last_msg'] = False
             d['timestamp'] = datetime.datetime.now()
 
             logging.debug("getting children")
