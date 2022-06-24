@@ -1176,7 +1176,7 @@ class DataFlowKernel(object):
 
         logger.info("DFK cleanup complete")
 
-    def checkpoint(self, tasks: Optional[Sequence[int]] = None) -> str:
+    def checkpoint(self, tasks: Optional[Sequence[TaskRecord]] = None) -> str:
         """Checkpoint the dfk incrementally to a checkpoint file.
 
         When called, every task that has been completed yet not
@@ -1196,7 +1196,7 @@ class DataFlowKernel(object):
         """
         with self.checkpoint_lock:
             if tasks:
-                checkpoint_queue = tasks  # type: Iterable[int]
+                checkpoint_queue = tasks  # type: Iterable[TaskRecord]
             else:
                 checkpoint_queue = list(self.tasks.values())
 
