@@ -20,7 +20,7 @@ from functools import partial
 # mostly for type checking
 from typing import cast, Any, Callable, Dict, Iterable, Optional, Union, List, Sequence, Tuple
 from parsl.channels.base import Channel
-from parsl.executors.base import ParslExecutor
+from parsl.executors.base import ParslExecutor, FutureWithTaskID
 from parsl.providers.provider_base import Channeled, MultiChanneled, ExecutionProvider
 
 import parsl
@@ -638,7 +638,7 @@ class DataFlowKernel(object):
 
         self._send_task_log_info(task_record)
 
-        if hasattr(exec_fu, "parsl_executor_task_id"):
+        if isinstance(exec_fu, FutureWithTaskID):
             logger.info(f"Parsl task {task_id} try {try_id} launched on executor {executor.label} with executor id {exec_fu.parsl_executor_task_id}")
         else:
             logger.info(f"Parsl task {task_id} try {try_id} launched on executor {executor.label}")

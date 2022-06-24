@@ -13,7 +13,7 @@ import math
 from parsl.serialize import pack_apply_message, deserialize
 from parsl.app.errors import RemoteExceptionWrapper
 from parsl.executors.high_throughput import zmq_pipes
-from parsl.executors.base import HasConnectedWorkers
+from parsl.executors.base import HasConnectedWorkers, FutureWithTaskID
 from parsl.executors.high_throughput import interchange
 from parsl.executors.errors import (
     BadMessage, ScalingFailed,
@@ -592,8 +592,7 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
             args_to_print = tuple([arg if len(repr(arg)) < 100 else (repr(arg)[:100] + '...') for arg in args])
         logger.debug("Pushing function {} to queue with args {}".format(func, args_to_print))
 
-        fut: Future = Future()
-        fut.parsl_executor_task_id = task_id
+        fut: Future = FutureWithTaskID(str(task_id))
         self.tasks[task_id] = fut
 
         try:

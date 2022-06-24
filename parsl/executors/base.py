@@ -291,3 +291,9 @@ class HasConnectedWorkers():
     @abstractproperty
     def workers_per_node(self) -> Union[int, float]:
         pass
+
+
+class FutureWithTaskID(Future):
+    def __init__(self, task_id: str) -> None:
+        super().__init__()
+        self.parsl_executor_task_id = task_id
