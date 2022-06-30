@@ -355,7 +355,7 @@ class Manager(object):
 
     @wrap_with_logs
     def worker_watchdog(self, kill_event):
-        """ Listens on the pending_result_queue and sends out results via 0mq
+        """Keeps workers alive.
 
         Parameters:
         -----------
