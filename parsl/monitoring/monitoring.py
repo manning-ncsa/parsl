@@ -19,7 +19,7 @@ from parsl.utils import setproctitle
 from parsl.serialize import deserialize
 
 from parsl.monitoring.message_type import MessageType
-from parsl.monitoring.types import TaggedMonitoringMessage
+from parsl.monitoring.types import AddressedMonitoringMessage, TaggedMonitoringMessage
 from typing import cast, Any, Callable, Dict, List, Optional, Union
 
 from parsl.serialize import serialize
@@ -350,9 +350,9 @@ class MonitoringHub(RepresentationMixin):
         comm_q = sizedQueue(maxsize=10)  # type: Queue[Union[Tuple[int, int], str]]
         self.exception_q = sizedQueue(maxsize=10)  # type: Queue[Tuple[str, str]]
         self.priority_msgs = sizedQueue()  # type: Queue[Tuple[Any, int]]
-        self.resource_msgs = sizedQueue()  # type: Queue[Tuple[TaggedMonitoringMessage, Any]]
-        self.node_msgs = sizedQueue()  # type: Queue[Tuple[TaggedMonitoringMessage, int]]
-        self.block_msgs = sizedQueue()  # type:  Queue[Tuple[TaggedMonitoringMessage, Any]]
+        self.resource_msgs = sizedQueue()  # type: Queue[AddressedMonitoringMessage]
+        self.node_msgs = sizedQueue()  # type: Queue[AddressedMonitoringMessage]
+        self.block_msgs = sizedQueue()  # type:  Queue[AddressedMonitoringMessage]
 
         self.router_proc = forkProcess(target=router_starter,
                                        args=(comm_q, self.exception_q, self.priority_msgs, self.node_msgs, self.block_msgs, self.resource_msgs),
@@ -528,7 +528,7 @@ class MonitoringHub(RepresentationMixin):
 
 
 @wrap_with_logs
-def filesystem_receiver(logdir: str, q: "queue.Queue[Tuple[TaggedMonitoringMessage, Any]]", run_dir: str) -> None:
+def filesystem_receiver(logdir: str, q: "queue.Queue[AddressedMonitoringMessage]", run_dir: str) -> None:
     logger = start_file_logger("{}/monitoring_filesystem_radio.log".format(logdir),
                                name="monitoring_filesystem_radio",
                                level=logging.DEBUG)
@@ -555,7 +555,7 @@ def filesystem_receiver(logdir: str, q: "queue.Queue[Tuple[TaggedMonitoringMessa
                     message = deserialize(f.read())
                 logger.info(f"Message received is: {message}")
                 assert(isinstance(message, tuple))
-                q.put(cast(Any, message))  # the type of message is complicated to assert, so cast to Any
+                q.put(cast(AddressedMonitoringMessage, message))
                 os.remove(full_path_filename)
             except Exception:
                 logger.exception(f"Exception processing {filename} - probably will be retried next iteration")
@@ -634,10 +634,10 @@ class MonitoringRouter:
                                                            max_port=hub_port_range[1])
 
     def start(self,
-              priority_msgs: "queue.Queue[Tuple[TaggedMonitoringMessage, int]]",
-              node_msgs: "queue.Queue[Tuple[TaggedMonitoringMessage, int]]",
-              block_msgs: "queue.Queue[Tuple[TaggedMonitoringMessage, int]]",
-              resource_msgs: "queue.Queue[Tuple[TaggedMonitoringMessage, Any]]") -> None:
+              priority_msgs: "queue.Queue[AddressedMonitoringMessage]",
+              node_msgs: "queue.Queue[AddressedMonitoringMessage]",
+              block_msgs: "queue.Queue[AddressedMonitoringMessage]",
+              resource_msgs: "queue.Queue[AddressedMonitoringMessage]") -> None:
         try:
             router_keep_going = True
             while router_keep_going:
@@ -666,13 +666,13 @@ class MonitoringRouter:
                             node_msg = (msg, 0)
                             node_msgs.put(node_msg)
                         elif msg[0] == MessageType.RESOURCE_INFO:
-                            resource_msgs.put(cast(Any, (msg, 0)))
+                            resource_msgs.put(cast(AddressedMonitoringMessage, (msg, 0)))
                         elif msg[0] == MessageType.BLOCK_INFO:
-                            block_msgs.put(cast(Any, (msg, 0)))
+                            block_msgs.put(cast(AddressedMonitoringMessage, (msg, 0)))
                         elif msg[0] == MessageType.TASK_INFO:
-                            priority_msgs.put((cast(Any, msg), 0))
+                            priority_msgs.put((msg, 0))
                         elif msg[0] == MessageType.WORKFLOW_INFO:
-                            priority_msgs.put((cast(Any, msg), 0))
+                            priority_msgs.put((msg, 0))
                             if 'exit_now' in msg[1] and msg[1]['exit_now']:
                                 router_keep_going = False
                         else:
@@ -706,10 +706,10 @@ class MonitoringRouter:
 @wrap_with_logs
 def router_starter(comm_q: "queue.Queue[Union[Tuple[int, int], str]]",
                    exception_q: "queue.Queue[Tuple[str, str]]",
-                   priority_msgs: "queue.Queue[Tuple[TaggedMonitoringMessage, int]]",
-                   node_msgs: "queue.Queue[Tuple[TaggedMonitoringMessage, int]]",
-                   block_msgs: "queue.Queue[Tuple[TaggedMonitoringMessage, int]]",
-                   resource_msgs: "queue.Queue[Tuple[TaggedMonitoringMessage, str]]",
+                   priority_msgs: "queue.Queue[AddressedMonitoringMessage]",
+                   node_msgs: "queue.Queue[AddressedMonitoringMessage]",
+                   block_msgs: "queue.Queue[AddressedMonitoringMessage]",
+                   resource_msgs: "queue.Queue[AddressedMonitoringMessage]",
 
                    hub_address: str,
                    hub_port: Optional[int],
