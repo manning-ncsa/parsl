@@ -641,6 +641,8 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
         the opportunity to finish current tasks or cleanup. This is tracked
         in issue #530
 
+        Exactly one of blocks or block_ids must be specified.
+
         Parameters
         ----------
 
@@ -666,9 +668,20 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
         List of job_ids marked for termination
         """
         logger.debug(f"Scale in called, blocks={blocks}, block_ids={block_ids}")
+
+        assert (block_ids != []) ^ (blocks is not None), "Exactly one of blocks or block IDs must be specified"
+
+        block_ids_to_kill: List[str]
         if block_ids:
+            # these asserts are slightly different than treating
+            # block_ids as a bool: they distinguish the empty
+            # list [] differently.
+            assert block_ids != []
+            assert blocks is None
             block_ids_to_kill = block_ids
         else:
+            assert block_ids == []
+            assert blocks is not None
             managers = self.connected_managers
             block_info = {}  # block id -> list( tasks, idle duration )
             for manager in managers:
