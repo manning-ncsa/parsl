@@ -38,6 +38,7 @@ from parsl.dataflow.states import States, FINAL_STATES, FINAL_FAILURE_STATES
 from parsl.dataflow.taskrecord import TaskRecord
 from parsl.dataflow.usage_tracking.usage import UsageTracker
 from parsl.executors.threads import ThreadPoolExecutor
+from parsl.process_loggers import wrap_with_logs
 from parsl.providers.provider_base import JobStatus, JobState
 from parsl.utils import get_version, get_std_fname_mode, get_all_checkpoints
 
@@ -1095,6 +1096,7 @@ class DataFlowKernel(object):
 
         logger.info("All remaining tasks completed")
 
+    @wrap_with_logs
     def cleanup(self) -> None:
         """DataFlowKernel cleanup.
 
