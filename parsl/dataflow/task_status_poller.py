@@ -32,7 +32,7 @@ class PollItem(ExecutorStatus):
         # the same cyclic import that makes DataFlowKernel need to be quoted
         # in the __init__ type signature?
         # So explicitly ignore this type problem.
-        if self._dfk.monitoring is not None:  # type: ignore
+        if self._dfk.monitoring is not None:
             self.monitoring_enabled = True
             hub_address = self._dfk.hub_address
             hub_port = self._dfk.hub_interchange_port
