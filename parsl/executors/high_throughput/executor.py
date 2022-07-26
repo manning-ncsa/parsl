@@ -506,7 +506,7 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
             logger.debug("Started queue management thread")
 
         else:
-            logger.debug("Management thread already exists, returning")
+            logger.error("Management thread already exists, returning")
 
     def hold_worker(self, worker_id: str) -> None:
         """Puts a worker on hold, preventing scheduling of additional tasks to it.
