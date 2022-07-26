@@ -50,12 +50,10 @@ class Config(RepresentationMixin):
     run_dir : str, optional
         Path to run directory. Default is 'runinfo'.
     strategy : str, optional
-        Strategy to use for scaling resources according to workflow needs. Can be 'simple' or `None`. If `None`, dynamic
-        scaling will be disabled. Default is 'simple'.
-    # TODO: db_logger_config is not documented here. The type is keyword based here, by the looks of it, which might
-    # be better structured as a type-checked config object? For now, I've told mypy it is Optional[Any] which is weak.
+        Strategy to use for scaling blocks according to workflow needs. Can be 'simple', 'htex_auto_scale' or `None`.
+        If `None`, dynamic scaling will be disabled. Default is 'simple'.
     max_idletime : float, optional
-        The maximum idle time allowed for an executor before strategy could shut down unused resources (scheduler jobs). Default is 120.0 seconds.
+        The maximum idle time allowed for an executor before strategy could shut down unused blocks. Default is 120.0 seconds.
     usage_tracking : bool, optional
         Set this field to True to opt-in to Parsl's usage tracking system. Parsl only collects minimal, non personally-identifiable,
         information used for reporting to our funding agencies. Default is False.
