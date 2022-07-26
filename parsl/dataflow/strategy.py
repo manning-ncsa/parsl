@@ -30,7 +30,7 @@ from typing_extensions import TypedDict
 from parsl.dataflow.executor_status import ExecutorStatus
 from parsl.executors import HighThroughputExecutor
 from parsl.providers.provider_base import JobState
-from parsl.process_loggers import wrap_with_logs
+# from parsl.process_loggers import wrap_with_logs
 
 
 logger = logging.getLogger(__name__)
