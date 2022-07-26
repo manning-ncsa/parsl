@@ -92,10 +92,7 @@ class FlowControl(object):
             if time_to_die:
                 return
 
-            if prev == self._wake_up_time:
-                self.make_callback()
-            else:
-                print("Sleeping a bit more")
+            self.make_callback()
 
     def notify(self, event_id: str) -> None:
         """Let the FlowControl system know that there is an event."""
