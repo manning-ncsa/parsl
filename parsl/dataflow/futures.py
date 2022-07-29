@@ -10,7 +10,7 @@ from concurrent.futures import Future
 import logging
 import threading
 
-from typing import List, Optional
+from typing import Sequence, Optional
 
 from parsl.dataflow.taskrecord import TaskRecord
 from parsl.app.futures import DataFuture
@@ -71,7 +71,7 @@ class AppFuture(Future):
         """
         super().__init__()
         self._update_lock = threading.Lock()
-        self._outputs = []  # type: List[DataFuture]
+        self._outputs = []  # type: Sequence[DataFuture]
         self.task_def = task_def
 
     @property
@@ -116,5 +116,5 @@ class AppFuture(Future):
         return self.task_def['status'].name
 
     @property
-    def outputs(self) -> List[DataFuture]:
+    def outputs(self) -> Sequence[DataFuture]:
         return self._outputs
