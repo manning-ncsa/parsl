@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import threading
 import datetime
 from typing_extensions import TypedDict
