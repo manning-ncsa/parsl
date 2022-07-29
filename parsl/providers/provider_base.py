@@ -44,11 +44,6 @@ class JobStatus(object):
     """
     SUMMARY_TRUNCATION_THRESHOLD = 2048
 
-    # mypy as I have configured it requires an explicit optional here.
-    # there was a change in PEP484 that makes this behaviour itself different between
-    # different typecheckers: https://github.com/python/peps/pull/689
-    # previously = None implied Optional on the type, but there has been some pressure
-    # against that - see https://github.com/python/typing/issues/275
     def __init__(self, state: JobState, message: Optional[str] = None, exit_code: Optional[int] = None,
                  stdout_path: Optional[str] = None, stderr_path: Optional[str] = None):
         self.state = state
@@ -156,10 +151,6 @@ class ExecutionProvider(metaclass=ABCMeta):
                                 +-------------------
      """
 
-    """ These are not class attributes... this is the wrong way to specify them
-
-    """
-
     @abstractmethod
     def __init__(self) -> None:
         self.min_blocks: int
@@ -167,10 +158,10 @@ class ExecutionProvider(metaclass=ABCMeta):
         self.init_blocks: int
         self.nodes_per_block: int
         self.script_dir: Optional[str]
-        self.parallelism: float  # TODO not sure about this one?
-        self.resources: Dict[object, Any]  # I think the contents of this are provider-specific?
-        self._cores_per_node = None  # type: Optional[int]
-        self._mem_per_node = None  # type: Optional[float]
+        self.parallelism: float
+        self.resources: Dict[object, Any]
+        self._cores_per_node: Optional[int] = None
+        self._mem_per_node: Optional[float] = None
         pass
 
     @abstractmethod
@@ -282,7 +273,7 @@ class ExecutionProvider(metaclass=ABCMeta):
 
 class Channeled():
     """A marker type to indicate that parsl should manage a Channel for this provider"""
-    def __init__(self) -> None:  # TODO make abstract?
+    def __init__(self) -> None:
         self.channel: Channel
         pass
 
@@ -290,6 +281,6 @@ class Channeled():
 class MultiChanneled():
     """A marker type to indicate that parsl should manage Channels for this provider"""
 
-    def __init__(self) -> None:  # TODO make abstract?
+    def __init__(self) -> None:
         self.channels: List[Channel]
         pass
