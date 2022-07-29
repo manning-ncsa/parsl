@@ -271,9 +271,6 @@ class Memoizer(object):
         Args:
              - task (dict) : A task dict from dfk.tasks
              - r (Result future): Result future
-
-        A warning is issued when a hash collision occurs during the update.
-        This is not likely.
         """
         # TODO: could use typeguard
         assert isinstance(r, Future)
@@ -283,10 +280,8 @@ class Memoizer(object):
         if not self.memoize or not task['memoize'] or 'hashsum' not in task:
             return
 
-        # this test is so that at runtime we know the value from task['hashsum']
-        # is definitely a string, and not None, going into lookup table operations.
         if not isinstance(task['hashsum'], str):
-            logger.warning("Attempting to update app cache entry but hashsum is not a string key")
+            logger.error("Attempting to update app cache entry but hashsum is not a string key")
             return
 
         if task['hashsum'] in self.memo_lookup_table:
