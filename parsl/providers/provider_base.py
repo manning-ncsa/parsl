@@ -279,7 +279,7 @@ class Channeled():
 
 
 class MultiChanneled():
-    """A marker type to indicate that parsl should manage Channels for this provider"""
+    """A marker type to indicate that parsl should manage multiple Channels for this provider"""
 
     def __init__(self) -> None:
         self.channels: List[Channel]
