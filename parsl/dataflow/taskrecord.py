@@ -81,6 +81,7 @@ class TaskRecord(TypedDict, total=False):
 
     join: bool
     """Is this a join_app?"""
+
     joins: Optional[Future]
     """If this is a join app and the python body has executed, then this
     contains the Future that the join app will join."""
