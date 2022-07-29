@@ -21,7 +21,7 @@ class TaskRecord(TypedDict, total=False):
 
     depends: List[Future]
 
-    app_fu: "AppFuture"
+    app_fu: AppFuture
     """The Future which was returned to the user when an app was invoked.
     """
 
