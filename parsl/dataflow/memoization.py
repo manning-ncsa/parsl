@@ -157,7 +157,7 @@ class Memoizer(object):
 
     """
 
-    def __init__(self, dfk: DataFlowKernel, memoize: bool = True, checkpoint: 'Dict[str, Future[Any]]' = {}):
+    def __init__(self, dfk: DataFlowKernel, memoize: bool = True, checkpoint: Dict[str, Future[Any]] = {}):
         """Initialize the memoizer.
 
         Args:
@@ -216,7 +216,7 @@ class Memoizer(object):
         hashedsum = hashlib.md5(x).hexdigest()
         return hashedsum
 
-    def check_memo(self, task: TaskRecord) -> 'Optional[Future[Any]]':
+    def check_memo(self, task: TaskRecord) -> Optional[Future[Any]]:
         """Create a hash of the task and its inputs and check the lookup table for this hash.
 
         If present, the results are returned.
@@ -251,7 +251,7 @@ class Memoizer(object):
         assert isinstance(result, Future) or result is None
         return result
 
-    def hash_lookup(self, hashsum: str) -> 'Future[Any]':
+    def hash_lookup(self, hashsum: str) -> Future[Any]:
         """Lookup a hash in the memoization table.
 
         Args:
@@ -265,7 +265,7 @@ class Memoizer(object):
         """
         return self.memo_lookup_table[hashsum]
 
-    def update_memo(self, task: 'TaskRecord', r: 'Future[Any]') -> None:
+    def update_memo(self, task: 'TaskRecord', r: Future[Any]) -> None:
         """Updates the memoization lookup table with the result from a task.
 
         Args:
