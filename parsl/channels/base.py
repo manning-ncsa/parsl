@@ -117,7 +117,7 @@ class Channel(metaclass=ABCMeta):
 
     # probable bug here - that mode default should maybe be octal 511?
     @abstractmethod
-    def makedirs(self, path: str, mode: int, exist_ok: bool = False) -> None:
+    def makedirs(self, path: str, mode: int = 0o777, exist_ok: bool = False) -> None:
         """Create a directory.
 
         If intermediate directories do not exist, they will be created.
