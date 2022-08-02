@@ -270,7 +270,7 @@ class SSHChannel(Channel, RepresentationMixin):
 
         return result
 
-    def makedirs(self, path: str, mode: int = 511, exist_ok: bool = False) -> None:
+    def makedirs(self, path: str, mode: int = 0o777, exist_ok: bool = False) -> None:
         """Create a directory on the remote side.
 
         If intermediate directories do not exist, they will be created.
