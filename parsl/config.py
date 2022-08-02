@@ -24,7 +24,7 @@ class Config(RepresentationMixin):
         Default is [:class:`~parsl.executors.threads.ThreadPoolExecutor()`].
     app_cache : bool, optional
         Enable app caching. Default is True.
-    checkpoint_files : list of str, optional
+    checkpoint_files : sequence of str, optional
         List of paths to checkpoint files. See :func:`parsl.utils.get_all_checkpoints` and
         :func:`parsl.utils.get_last_checkpoint` for helpers. Default is None.
     checkpoint_mode : str, optional
