@@ -91,7 +91,7 @@ def python_app(function=None,
                cache: bool = False,
                executors: Union[List[str], Literal['all']] = 'all',
                ignore_for_cache: Optional[List[str]] = None,
-               join: bool = False):
+               join: bool = False) -> Callable:
     """Decorator function for making python apps.
 
     Parameters
@@ -133,7 +133,7 @@ def python_app(function=None,
 def join_app(function=None,
              data_flow_kernel: Optional[DataFlowKernel] = None,
              cache: bool = False,
-             ignore_for_cache: Optional[List[str]] = None):
+             ignore_for_cache: Optional[List[str]] = None) -> Callable:
     return python_app(function=function,
                       data_flow_kernel=data_flow_kernel,
                       cache=cache,
@@ -147,7 +147,7 @@ def bash_app(function=None,
              data_flow_kernel: Optional[DataFlowKernel] = None,
              cache: bool = False,
              executors: Union[List[str], Literal['all']] = 'all',
-             ignore_for_cache: Optional[List[str]] = None):
+             ignore_for_cache: Optional[List[str]] = None) -> Callable:
     """Decorator function for making bash apps.
 
     Parameters
