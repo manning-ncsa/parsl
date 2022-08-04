@@ -1366,7 +1366,7 @@ class DataFlowKernelLoader(object):
     need to instantiate this class.
     """
 
-    _dfk = None  # type: Optional[DataFlowKernel]
+    _dfk: Optional[DataFlowKernel] = None
 
     @classmethod
     def clear(cls) -> None:
