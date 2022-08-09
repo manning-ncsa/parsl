@@ -139,7 +139,7 @@ class BashApp(AppBase):
         # but... other parts of the code are relying on getting the __name__
         # of (?) an arbitrary Callable too (which is why we're setting the __name__
         # at all)
-        remote_fn.__name__ = self.func.__name__  # type: ignore
+        remote_fn.__name__ = self.func.__name__  # type: ignore[attr-defined]
 
         self.wrapped_remote_function = wrap_error(remote_fn)
 
