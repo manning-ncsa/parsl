@@ -46,24 +46,23 @@ class ParslExecutor(metaclass=ABCMeta):
     # concrete subclasses - see  github.com/python/mypy/issues/4426
     # and maybe PEP-544 Protocols
 
-    # however, recent sphinx gets upset about missing default values...
+    def __init__(self) -> None:
+        self.label: str
+        self.radio_mode: str = "udp"
 
-    label: str = "undefined"
-    radio_mode: str = "udp"
+        self.provider: Optional[ExecutionProvider] = None
+        # this is wrong here. eg thread local executor has no provider.
+        # perhaps its better attached to the block scaling provider?
 
-    provider: Optional[ExecutionProvider] = None
-    # this is wrong here. eg thread local executor has no provider.
-    # perhaps its better attached to the block scaling provider?
+        # i'm not particularly happy with this default,
+        # probably would be better specified via an __init__
+        # as a mandatory parameter
+        self.managed: bool = False
 
-    # i'm not particularly happy with this default,
-    # probably would be better specified via an __init__
-    # as a mandatory parameter
-    managed: bool = False
-
-    outstanding: Any = None  # what is this? used by strategy
-    working_dir: Optional[str] = None
-    storage_access: Optional[Sequence[Staging]] = None
-    run_id: Optional[str] = None
+        self.outstanding: Any = None  # what is this? used by strategy
+        self.working_dir: Optional[str] = None
+        self.storage_access: Optional[Sequence[Staging]] = None
+        self.run_id: Optional[str] = None
 
     def __enter__(self) -> ParslExecutor:
         return self
