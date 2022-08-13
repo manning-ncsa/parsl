@@ -495,7 +495,7 @@ class Interchange(object):
                 if manager not in self._ready_managers:
                     logger.warning("Received a result from a un-registered manager: {!r}".format(manager))
                 else:
-                    logger.debug(f"Got {len(all_messages)} result items in batch from manager {manager}")
+                    logger.debug(f"Got {len(all_messages)} result items in batch from manager {manager!r}")
 
                     b_messages = []
 
