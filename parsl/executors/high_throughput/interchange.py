@@ -516,7 +516,7 @@ class Interchange(object):
                         assert 'type' in r, f"Message is missing type entry: {r}"
                         if r['type'] == 'result':
                             try:
-                                logger.debug(f"Removing task {r['task_id']} from manager record {manager}")
+                                logger.debug(f"Removing task {r['task_id']} from manager record {manager!r}")
                                 self._ready_managers[manager]['tasks'].remove(r['task_id'])
                             except Exception:
                                 # If we reach here, there's something very wrong.
@@ -534,7 +534,7 @@ class Interchange(object):
                         self.results_outgoing.send_multipart(b_messages_to_send)
                         logger.debug("Sent messages on results_outgoing")
 
-                    logger.debug(f"Current tasks on manager {manager}: {self._ready_managers[manager]['tasks']}")
+                    logger.debug(f"Current tasks on manager {manager!r}: {self._ready_managers[manager]['tasks']}")
                     if len(self._ready_managers[manager]['tasks']) == 0 and self._ready_managers[manager]['idle_since'] is None:
                         self._ready_managers[manager]['idle_since'] = time.time()
                 logger.debug("leaving results_incoming section")
