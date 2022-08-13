@@ -1,3 +1,4 @@
+from __future__ import annotations
 from abc import ABCMeta, abstractmethod, abstractproperty
 from concurrent.futures import Future
 from typing import Any, Callable, Dict, List, Literal, Optional, Sequence, Union
@@ -64,7 +65,7 @@ class ParslExecutor(metaclass=ABCMeta):
     storage_access: Optional[Sequence[Staging]] = None
     run_id: Optional[str] = None
 
-    def __enter__(self) -> "ParslExecutor":
+    def __enter__(self) -> ParslExecutor:
         return self
 
     # too lazy to figure out what the three Anys here should be
