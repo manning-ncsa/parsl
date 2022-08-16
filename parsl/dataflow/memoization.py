@@ -265,7 +265,7 @@ class Memoizer(object):
         """
         return self.memo_lookup_table[hashsum]
 
-    def update_memo(self, task: 'TaskRecord', r: Future[Any]) -> None:
+    def update_memo(self, task: TaskRecord, r: Future[Any]) -> None:
         """Updates the memoization lookup table with the result from a task.
 
         Args:

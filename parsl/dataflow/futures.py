@@ -71,7 +71,8 @@ class AppFuture(Future):
         """
         super().__init__()
         self._update_lock = threading.Lock()
-        self._outputs = []  # type: Sequence[DataFuture]
+        self._outputs: Sequence[DataFuture]
+        self._outputs = []
         self.task_def = task_def
 
     @property

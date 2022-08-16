@@ -201,7 +201,7 @@ class DataFlowKernel(object):
                 self._checkpoint_timer = Timer(self.checkpoint, interval=(30 * 60), name="Checkpoint")
 
         self.task_count = 0
-        self.tasks = {}  # type: Dict[int, TaskRecord]
+        self.tasks: Dict[int, TaskRecord] = {}
         self.submitter_lock = threading.Lock()
 
         atexit.register(self.atexit_cleanup)
@@ -911,7 +911,9 @@ class DataFlowKernel(object):
 
         resource_specification = app_kwargs.get('parsl_resource_specification', {})
 
-        task_def = {'executor': executor,
+        task_def: TaskRecord
+        task_def = {'depends': [],
+                    'executor': executor,
                     'func_name': func.__name__,
                     'memoize': cache,
                     'hashsum': None,
@@ -929,7 +931,7 @@ class DataFlowKernel(object):
                     'time_returned': None,
                     'try_time_launched': None,
                     'try_time_returned': None,
-                    'resource_specification': resource_specification}  # type: TaskRecord
+                    'resource_specification': resource_specification}
 
         self.update_task_state(task_def, States.unsched)
 
