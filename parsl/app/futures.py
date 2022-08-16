@@ -90,8 +90,12 @@ class DataFuture(Future):
         else:
             return False
 
-    def __repr__(self):
-        return '<%s file=%s super=%s>' % (
-            self.__class__.__name__,
-            repr(self.file_obj),
-            super().__repr__())
+    def __repr__(self) -> str:
+        type_ = type(self)
+        module = type_.__module__
+        qualname = type_.__qualname__
+        if self.done():
+            done = "done"
+        else:
+            done = "not done"
+        return f"<{module}.{qualname} object at {hex(id(self))} representing {repr(self.file_obj)} {done}>"
