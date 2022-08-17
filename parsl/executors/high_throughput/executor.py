@@ -200,11 +200,12 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
                  poll_period: int = 10,
                  address_probe_timeout: Optional[int] = None,
                  managed: bool = True,
-                 worker_logdir_root: Optional[str] = None):
+                 worker_logdir_root: Optional[str] = None,
+                 block_error_handler: bool = True):
 
         logger.debug("Initializing HighThroughputExecutor")
 
-        BlockProviderExecutor.__init__(self, provider=provider)
+        BlockProviderExecutor.__init__(self, provider=provider, block_error_handler=block_error_handler)
         self.label = label
         self.worker_debug = worker_debug
         self.storage_access = storage_access
