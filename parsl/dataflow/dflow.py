@@ -29,7 +29,7 @@ from parsl.app.futures import DataFuture
 from parsl.config import Config
 from parsl.data_provider.data_manager import DataManager
 from parsl.data_provider.files import File
-from parsl.dataflow.error import BadCheckpoint, ConfigurationError, DependencyError
+from parsl.dataflow.error import BadCheckpoint, DependencyError
 from parsl.dataflow.flow_control import FlowControl, Timer
 from parsl.dataflow.futures import AppFuture
 from parsl.dataflow.memoization import Memoizer
@@ -67,6 +67,7 @@ class DataFlowKernel(object):
 
     """
 
+    @typeguard.typechecked
     def __init__(self, config: Config = Config()) -> None:
         """Initialize the DataFlowKernel.
 
@@ -80,10 +81,6 @@ class DataFlowKernel(object):
         # this will be used to check cleanup only happens once
         self.cleanup_called = False
 
-        if isinstance(config, dict):
-            raise ConfigurationError(
-                    'Expected `Config` class, received dictionary. For help, '
-                    'see http://parsl.readthedocs.io/en/stable/stubs/parsl.config.Config.html')
         self._config = config
         self.run_dir = make_rundir(config.run_dir)
 
