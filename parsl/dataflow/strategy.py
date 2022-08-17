@@ -200,7 +200,7 @@ class Strategy(object):
     # is not tightly typed enough to be allowed in this module yet.
     # @wrap_with_logs
     def _general_strategy(self, status_list: "List[PollItem]", tasks: List[int], strategy_type: str) -> None:
-        logger.debug(f"general strategy starting with strategy_type {strategy_type}")
+        logger.debug(f"general strategy starting with strategy_type {strategy_type} for {len(status_list)} executors")
 
         for exec_status in status_list:
             executor = exec_status.executor
