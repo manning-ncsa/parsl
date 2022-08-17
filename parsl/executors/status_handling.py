@@ -246,7 +246,9 @@ class NoStatusHandlingExecutor(ParslExecutor):
     def tasks(self) -> Dict[object, Future]:
         return self._tasks
 
-    # this property seems to be unimplemented and unused
+    # this property seems to be unimplemented and unused - providers only make
+    # sense in the context of a block handling executor, not executors in
+    # general
     # @property
     # def provider(self):
     #    return self._provider

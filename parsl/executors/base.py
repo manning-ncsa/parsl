@@ -53,6 +53,8 @@ class ParslExecutor(metaclass=ABCMeta):
         self.provider: Optional[ExecutionProvider] = None
         # this is wrong here. eg thread local executor has no provider.
         # perhaps its better attached to the block scaling provider?
+        # cross-ref with notes of @property provider() in the
+        # nostatushandlingexecutor.
 
         # i'm not particularly happy with this default,
         # probably would be better specified via an __init__
