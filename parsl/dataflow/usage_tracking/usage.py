@@ -1,3 +1,4 @@
+from __future__ import annotations
 import uuid
 import time
 import hashlib
@@ -15,6 +16,8 @@ from parsl.multiprocessing import forkProcess, ForkProcess
 from parsl.utils import setproctitle
 from parsl.dataflow.states import States
 from parsl.version import VERSION as PARSL_VERSION
+
+import parsl.dataflow.dflow  # can't import just the symbol for DataFlowKernel because of mutually-recursive imports
 
 logger = logging.getLogger(__name__)
 
@@ -92,8 +95,11 @@ class UsageTracker (object):
 
     """
 
-    def __init__(self, dfk, ip='52.3.111.203', port=50077,
-                 domain_name='tracking.parsl-project.org'):
+    def __init__(self,
+                 dfk: parsl.dataflow.dflow.DataFlowKernel,
+                 ip: str = '52.3.111.203',
+                 port: int = 50077,
+                 domain_name: str = 'tracking.parsl-project.org') -> None:
         """Initialize usage tracking unless the user has opted-out.
 
         We will try to resolve the hostname specified in kwarg:domain_name
