@@ -140,24 +140,28 @@ class Strategy(object):
         """Initialize strategy."""
         self.dfk = dfk
         self.config = dfk.config
-        self.executors = {}  # type: Dict[str, ExecutorIdleness]
-        # self.executors = {}  # type: Dict[str, Dict[str, Any]]
+
+        self.executors: Dict[str, ExecutorIdleness]
+        self.executors = {}
+
         self.max_idletime = self.dfk.config.max_idletime
 
         for e in self.dfk.config.executors:
             self.executors[e.label] = {'idle_since': None}
 
+        self.strategies: Dict[Optional[str], Callable]
         self.strategies = {None: self._strategy_noop,
                            'simple': self._strategy_simple,
                            'htex_auto_scale': self._strategy_htex_auto_scale
-                          }  # type: Dict[Optional[str], Callable]
+                          }
 
         # mypy note: with mypy 0.761, the type of self.strategize is
         # correctly revealed inside this module, but isn't carried over
         #  when Strategy is used in other modules unless this specific
         # type annotation is used.
 
-        self.strategize = self.strategies[self.config.strategy]   # type: Callable
+        self.strategize: Callable
+        self.strategize = self.strategies[self.config.strategy]
 
         logger.debug("Scaling strategy: {0}".format(self.config.strategy))
 
