@@ -44,7 +44,6 @@ from parsl.utils import get_version, get_std_fname_mode, get_all_checkpoints
 
 from parsl.monitoring.message_type import MessageType
 
-
 logger = logging.getLogger(__name__)
 
 
