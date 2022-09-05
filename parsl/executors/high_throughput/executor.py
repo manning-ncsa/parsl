@@ -370,18 +370,6 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
                "exception" : serialized exception object, on failure
             }
 
-        We do not support these yet, but they could be added easily.
-
-        .. code:: python
-
-            {
-               "task_id" : <task_id>
-               "cpu_stat" : <>
-               "mem_stat" : <>
-               "io_stat"  : <>
-               "started"  : tstamp
-            }
-
         The `None` message is a die request.
         """
         logger.debug("[MTHREAD] queue management worker starting")
