@@ -175,8 +175,6 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
         In case of a remote file system, specify the path to where logs will be kept.
     """
 
-    _queue_management_thread: Optional[threading.Thread]
-
     @typeguard.typechecked
     def __init__(self,
                  label: str = 'HighThroughputExecutor',
@@ -202,6 +200,9 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
                  managed: bool = True,
                  worker_logdir_root: Optional[str] = None,
                  block_error_handler: bool = True):
+
+
+        self._queue_management_thread: Optional[threading.Thread]
 
         logger.debug("Initializing HighThroughputExecutor")
 
