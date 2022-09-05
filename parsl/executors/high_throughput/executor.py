@@ -201,7 +201,6 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
                  worker_logdir_root: Optional[str] = None,
                  block_error_handler: bool = True):
 
-
         self._queue_management_thread: Optional[threading.Thread]
 
         logger.debug("Initializing HighThroughputExecutor")

@@ -59,8 +59,6 @@ class PollItem(ExecutorStatus):
             if delta_status:
                 self.send_monitoring_info(delta_status)
 
-    # status: isn't optional so shouldn't default to None. I think?
-    # can I make the dict type more specific?
     def send_monitoring_info(self, status: Dict) -> None:
         # Send monitoring info for HTEX when monitoring enabled
         if self.monitoring_enabled:
