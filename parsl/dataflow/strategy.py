@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from parsl.dataflow.dflow import DataFlowKernel
     from parsl.dataflow.task_status_poller import PollItem
 
-from parsl.executors.base import ParslExecutor, HasConnectedWorkers
+from parsl.executors.base import ParslExecutor, HasConnectedWorkers, HasOutstanding
 
 from typing import Dict
 from typing import Callable
@@ -215,6 +215,7 @@ class Strategy(object):
             logger.debug(f"Strategizing for executor {label}")
 
             # Tasks that are either pending completion
+            assert isinstance(executor, HasOutstanding)
             active_tasks = executor.outstanding
 
             status = exec_status.status

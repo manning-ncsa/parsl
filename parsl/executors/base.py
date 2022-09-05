@@ -61,7 +61,10 @@ class ParslExecutor(metaclass=ABCMeta):
         # as a mandatory parameter
         self.managed: bool = False
 
-        self.outstanding: Any = None  # what is this? used by strategy
+        # there's an abstraction problem here - what kind of executor should
+        # statically have this? for now I'll implement a protocol and assert
+        # the protocol holds, wherever the code makes that assumption.
+        # self.outstanding: int = None  # what is this? used by strategy
         self.working_dir: Optional[str] = None
         self.storage_access: Optional[Sequence[Staging]] = None
         self.run_id: Optional[str] = None
@@ -292,6 +295,12 @@ class HasConnectedWorkers():
     @abstractproperty
     def workers_per_node(self) -> Union[int, float]:
         pass
+
+
+class HasOutstanding:
+    """A marker type to indicate that the executor has a count of outstanding tasks. This maybe should merge into the block executor?"""
+    def __init__(self) -> None:
+        self.outstanding: int
 
 
 class FutureWithTaskID(Future):

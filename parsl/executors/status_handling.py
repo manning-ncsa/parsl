@@ -95,12 +95,14 @@ class BlockProviderExecutor(ParslExecutor):
             logger.info(f"Allocated block ID {block_id} for simulated failure")
         self._simulated_status[block_id] = JobStatus(JobState.FAILED, message)
 
-    @abstractproperty
-    def outstanding(self) -> int:
-        """This should return the number of tasks that the executor has been given to run (waiting to run, and running now)"""
-
-        raise NotImplementedError("Classes inheriting from BlockProviderExecutor must implement "
-                                  "outstanding()")
+    # There's an abstraction problem here: is this a property of all executors or only executors
+    # which can be scaled with blocks?
+    # @abstractproperty
+    # def outstanding(self) -> int:
+    #    """This should return the number of tasks that the executor has been given to run (waiting to run, and running now)"""
+    #
+    #    raise NotImplementedError("Classes inheriting from BlockProviderExecutor must implement "
+    #                              "outstanding()")
 
     def status(self) -> Dict[str, JobStatus]:
         """Return status of all blocks."""
@@ -141,6 +143,11 @@ class BlockProviderExecutor(ParslExecutor):
         if not self.block_error_handler:
             return
         init_blocks = 3
+
+        # this code path assumes there is self.provider, but there's no
+        # type-checking guarantee of that.
+        assert self.provider is not None  # for type checking
+
         if hasattr(self.provider, 'init_blocks'):
             init_blocks = self.provider.init_blocks
         if init_blocks < 1:
@@ -151,9 +158,11 @@ class BlockProviderExecutor(ParslExecutor):
     def tasks(self) -> Dict[object, Future]:
         return self._tasks
 
-    @property
-    def provider(self):
-        return self._provider
+    # this is defined as a regular attribute at the superclass level,
+    # which may or may not be correct.
+    # @property
+    # def provider(self):
+    #    return self._provider
 
     def _filter_scale_in_ids(self, to_kill, killed):
         """ Filter out job id's that were not killed
@@ -183,6 +192,13 @@ class BlockProviderExecutor(ParslExecutor):
         return block_ids
 
     def _launch_block(self, block_id: str) -> Any:
+
+        # there's no static type guarantee that there is a provider here but
+        # the code assumes there is, so to pass type checking, this assert
+        # will catch violations of that assumption, that otherwise would appear
+        # in later references to self.provider
+        assert self.provider is not None
+
         launch_cmd = self._get_launch_command(block_id)
         job_id = self.provider.submit(launch_cmd, 1)
         if job_id:
