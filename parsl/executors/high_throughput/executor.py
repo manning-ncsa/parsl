@@ -300,6 +300,8 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
         if self.worker_logdir_root is not None:
             worker_logdir = "{}/{}".format(self.worker_logdir_root, self.label)
 
+        assert self.provider is not None
+
         l_cmd = self.launch_cmd.format(debug=debug_opts,
                                        prefetch_capacity=self.prefetch_capacity,
                                        address_probe_timeout_string=address_probe_timeout_string,

@@ -47,7 +47,9 @@ class BlockProviderExecutor(ParslExecutor):
                  provider: ExecutionProvider,
                  block_error_handler: bool):
         super().__init__()
+        # TODO: untangle having two provider attributes
         self._provider = provider
+        self.provider = provider
         self.block_error_handler = block_error_handler
         # errors can happen during the submit call to the provider; this is used
         # to keep track of such errors so that they can be handled in one place

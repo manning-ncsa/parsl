@@ -8,6 +8,7 @@ from parsl.data_provider.staging import Staging
 # for type checking:
 from parsl.providers.provider_base import ExecutionProvider
 from parsl.providers.provider_base import JobStatus
+from typing_extensions import runtime_checkable, Protocol
 
 import parsl  # noqa F401
 
@@ -288,7 +289,8 @@ class ParslExecutor(metaclass=ABCMeta):
         self._hub_port = value
 
 
-class HasConnectedWorkers():
+@runtime_checkable
+class HasConnectedWorkers(Protocol):
     """A marker type to indicate that the executor has a count of connected workers. This maybe should merge into the block executor?"""
     connected_workers: int
 
@@ -297,10 +299,10 @@ class HasConnectedWorkers():
         pass
 
 
-class HasOutstanding:
+@runtime_checkable
+class HasOutstanding(Protocol):
     """A marker type to indicate that the executor has a count of outstanding tasks. This maybe should merge into the block executor?"""
-    def __init__(self) -> None:
-        self.outstanding: int
+    outstanding: int
 
 
 class FutureWithTaskID(Future):
