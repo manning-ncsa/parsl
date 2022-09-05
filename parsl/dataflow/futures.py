@@ -9,7 +9,6 @@ We have two basic types of futures:
 from concurrent.futures import Future
 import logging
 import threading
-
 from typing import Sequence, Optional
 
 from parsl.dataflow.taskrecord import TaskRecord
