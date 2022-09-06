@@ -46,6 +46,7 @@ clean_coverage:
 
 .PHONY: mypy
 mypy: ## run mypy checks
+	mypy --version
 	MYPYPATH=$(CWD)/mypy-stubs mypy parsl/tests/configs/ parsl/tests/test*/ parsl/tests/sites/ parsl/app/ parsl/channels/ parsl/dataflow/ parsl/data_provider/ parsl/launchers parsl/providers/ parsl/monitoring/*py parsl/executors/high_throughput/process_worker_pool.py parsl/executors/high_throughput/interchange.py parsl/executors/*py
 
 .PHONY: local_thread_test
