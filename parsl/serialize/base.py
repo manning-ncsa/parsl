@@ -57,8 +57,8 @@ class SerializerBase(object):
         """
 
         # ignore types here because mypy at the moment is not fond of monkeypatching
-        self.serialize = functools.lru_cache(maxsize=maxsize)(self.serialize)  # type: ignore
-        self.deserialize = functools.lru_cache(maxsize=maxsize)(self.deserialize)  # type: ignore
+        self.serialize = functools.lru_cache(maxsize=maxsize)(self.serialize)  # type: ignore[assignment]
+        self.deserialize = functools.lru_cache(maxsize=maxsize)(self.deserialize)  # type: ignore[assignment]
         return
 
     @abstractmethod
