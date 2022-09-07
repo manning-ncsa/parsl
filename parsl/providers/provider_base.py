@@ -2,7 +2,7 @@ import os
 from abc import ABCMeta, abstractmethod, abstractproperty
 from enum import Enum
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence
 
 from parsl.channels.base import Channel
 
@@ -207,7 +207,7 @@ class ExecutionProvider(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def cancel(self, job_ids: List[object]) -> List[bool]:
+    def cancel(self, job_ids: Sequence[object]) -> Sequence[bool]:
         ''' Cancels the resources identified by the job_ids provided by the user.
 
         Args:
