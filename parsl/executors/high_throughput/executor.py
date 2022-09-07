@@ -224,12 +224,12 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
 
         mem_slots = max_workers
         cpu_slots = max_workers
-        if hasattr(self.provider, 'mem_per_node') and \
+        if isinstance(self.provider, ExecutionProvider) and \
                 self.provider.mem_per_node is not None and \
                 mem_per_worker is not None and \
                 mem_per_worker > 0:
             mem_slots = math.floor(self.provider.mem_per_node / mem_per_worker)
-        if hasattr(self.provider, 'cores_per_node') and \
+        if isinstance(self.provider, ExecutionProvider) and \
                 self.provider.cores_per_node is not None:
             cpu_slots = math.floor(self.provider.cores_per_node / cores_per_worker)
 
