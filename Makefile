@@ -49,7 +49,7 @@ mypy: ## run mypy checks
 	mypy --version
 	which mypy
 	echo $(PYTHONPATH)
-	PYTHONPATH=$(CWD)/mypy-plugins:$PYTHONPATH MYPYPATH=$(CWD)/mypy-stubs mypy parsl/tests/configs/ parsl/tests/test*/ parsl/tests/sites/ parsl/app/ parsl/channels/ parsl/dataflow/ parsl/data_provider/ parsl/launchers parsl/providers/ parsl/monitoring/*py parsl/executors/high_throughput/process_worker_pool.py parsl/executors/high_throughput/interchange.py parsl/executors/*py
+	PYTHONPATH=$(CWD)/mypy-plugins:$PYTHONPATH MYPYPATH=$(CWD)/mypy-stubs mypy --no-incremental parsl/tests/configs/ parsl/tests/test*/ parsl/tests/sites/ parsl/app/ parsl/channels/ parsl/dataflow/ parsl/data_provider/ parsl/launchers parsl/providers/ parsl/monitoring/*py parsl/executors/high_throughput/process_worker_pool.py parsl/executors/high_throughput/interchange.py parsl/executors/*py
 
 .PHONY: local_thread_test
 local_thread_test: ## run all tests with local_thread config
