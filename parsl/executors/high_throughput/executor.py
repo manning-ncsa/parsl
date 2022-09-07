@@ -661,6 +661,7 @@ class HighThroughputExecutor(BlockProviderExecutor, RepresentationMixin, HasConn
         logger.debug(f"Scale in called, blocks={blocks}, block_ids={block_ids}")
 
         assert (block_ids != []) ^ (blocks is not None), "Exactly one of blocks or block IDs must be specified"
+        assert self.provider is not None
 
         block_ids_to_kill: List[str]
         if block_ids:
