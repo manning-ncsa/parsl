@@ -411,7 +411,16 @@ class Manager(object):
         """
         start = time.time()
         self._kill_event = threading.Event()
-        self._tasks_in_progress = multiprocessing.Manager().dict()  # type: Dict[Any, Any]
+
+        # When upgrading from mypy 0.961 to 0.981, this change happens:
+
+        # multiprocessing.Manager().dict() according to mypy, does not
+        # return a Dict, but instead a multiprocessing.managers.DictProxy
+        # parsl/executors/high_throughput/process_worker_pool.py:416: note: Revealed type is "multiprocessing.managers.DictProxy[Any, Any]"
+        #
+        # but this type inference gets figured out, so no need for explicit annotation,
+        # I think
+        self._tasks_in_progress = multiprocessing.Manager().dict()
 
         self.procs = {}  # type: Dict[Any, Any]
         for worker_id in range(self.worker_count):
