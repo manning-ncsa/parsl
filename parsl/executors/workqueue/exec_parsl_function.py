@@ -4,7 +4,6 @@ import sys
 from typing import Any, List
 metas = []
 
-
 class MetaPathLogger:
 
     def find_spec(*args, **kwargs):
