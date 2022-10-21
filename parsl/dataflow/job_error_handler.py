@@ -31,21 +31,25 @@ class JobErrorHandler:
 
     def get_error(self, status: Dict[str, JobStatus]) -> Exception:
         """Concatenate all errors."""
-        err = ""
-        count = 1
-        for js in status.values():
-            if js.message is not None:
-                err = err + "{}. {}\n".format(count, js.message)
+        if len(status) == 0:
+            err = "No error message received"
+        else:
+            err = "Job errors:\n"
+            count = 1
+            for js in status.values():
+                err += f"Error {count}: \n"
                 count += 1
-            stdout = js.stdout_summary
-            if stdout:
-                err = err + "\tSTDOUT: {}\n".format(stdout)
-            stderr = js.stderr_summary
-            if stderr:
-                err = err + "\tSTDERR: {}\n".format(stderr)
+                if js.message is not None:
+                    err = err + f"{js.message}\n"
+                if js.exit_code is not None:
+                    err = err + f"\tEXIT CODE: {js.exit_code}\n"
+                stdout = js.stdout_summary
+                if stdout:
+                    err = err + f"\tSTDOUT: {stdout}\n"
+                stderr = js.stderr_summary
+                if stderr:
+                    err = err + f"\tSTDERR: {stderr}\n"
 
-        if len(err) == 0:
-            err = "[No error message received]"
         # wrapping things in an exception here doesn't really help in providing more information
         # than the string itself
         return Exception(err)
