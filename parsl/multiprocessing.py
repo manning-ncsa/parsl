@@ -9,10 +9,17 @@ import platform
 logger = logging.getLogger(__name__)
 
 ForkProcess = multiprocessing.context.ForkProcess
+SpawnProcess = multiprocessing.context.SpawnProcess
 
 
 def forkProcess(*args, **kwargs) -> ForkProcess:
     P = multiprocessing.get_context('fork').Process
+    # reveal_type(P)
+    return P(*args, **kwargs)
+
+
+def spawnProcess(*args, **kwargs) -> SpawnProcess:
+    P = multiprocessing.get_context('spawn').Process
     # reveal_type(P)
     return P(*args, **kwargs)
 
