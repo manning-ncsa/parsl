@@ -18,8 +18,8 @@ class JobState(bytes, Enum):
         obj.status_name = status_name
         return obj
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
         self._value_: int
         self.terminal: bool
         self.status_name: str
