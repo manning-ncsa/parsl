@@ -18,11 +18,12 @@ class JobState(bytes, Enum):
         obj.status_name = status_name
         return obj
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        self._value_: int
-        self.terminal: bool
-        self.status_name: str
+    # def __init__(self, *args: Any, **kwargs: Any) -> None:
+    #    super().__init__(*args, **kwargs)
+
+    value_: int
+    terminal: bool
+    status_name: str
 
     UNKNOWN = (0, False, "UNKNOWN")
     PENDING = (1, False, "PENDING")
