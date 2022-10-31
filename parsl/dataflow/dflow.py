@@ -976,7 +976,7 @@ class DataFlowKernel(object):
 
         with self.task_state_counts_lock:
             for state in States:
-                logger.info("Tasks in state {}: {}".format(str(state), self.task_state_counts[state]))
+                logger.info("Tasks in state {}: {}".format(state.name, self.task_state_counts[state]))
 
         logger.info("End of summary")
 
