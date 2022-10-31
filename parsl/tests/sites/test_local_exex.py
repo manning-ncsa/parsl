@@ -33,6 +33,7 @@ def bash_app(stdout=None, stderr=None):
     return 'echo "Hello from $(uname -a)" ; sleep 2'
 
 
+@pytest.mark.skip("Extreme scale executor unsupported")
 @pytest.mark.local
 def test_python(N=2):
     """Testing basic python functionality."""
@@ -52,6 +53,7 @@ def test_python(N=2):
     return
 
 
+@pytest.mark.skip("Extreme scale executor unsupported")
 @pytest.mark.local
 def test_bash():
     """Testing basic bash functionality."""
