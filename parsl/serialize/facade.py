@@ -7,164 +7,159 @@ from typing import Any, Dict, List, Tuple, Union
 logger = logging.getLogger(__name__)
 
 
-class ParslSerializer(object):
-    """ ParslSerializer gives you one interface to multiple serialization libraries
+""" Instantiate the appropriate classes
+"""
+headers = list(METHODS_MAP_CODE.keys()) + list(METHODS_MAP_DATA.keys())
+header_size = len(headers[0])
+
+methods_for_code = {}
+methods_for_data = {}
+
+for key in METHODS_MAP_CODE:
+    methods_for_code[key] = METHODS_MAP_CODE[key]()
+    methods_for_code[key].enable_caching(maxsize=128)
+
+    for key in METHODS_MAP_DATA:
+        methods_for_data[key] = METHODS_MAP_DATA[key]()
+
+
+def _list_methods() -> Tuple[Dict[bytes, SerializerBase], Dict[bytes, SerializerBase]]:
+    return methods_for_code, methods_for_data
+
+
+def pack_apply_message(func: Any, args: Any, kwargs: Any, buffer_threshold: int = int(128 * 1e6)) -> bytes:
+    """Serialize and pack function and parameters
+
+    Parameters
+    ----------
+
+    func: Function
+        A function to ship
+
+    args: Tuple/list of objects
+        positional parameters as a list
+
+    kwargs: Dict
+        Dict containing named parameters
+
+    buffer_threshold: Ignored
+        Limits buffer to specified size in bytes. Exceeding this limit would give you
+        a warning in the log. Default is 128MB.
     """
-    __singleton_instance = None
+    b_func = serialize(func, buffer_threshold=buffer_threshold)
+    b_args = serialize(args, buffer_threshold=buffer_threshold)
+    b_kwargs = serialize(kwargs, buffer_threshold=buffer_threshold)
+    packed_buffer = pack_buffers([b_func, b_args, b_kwargs])
+    return packed_buffer
 
-    def __new__(cls) -> "ParslSerializer":  # quotes on type here because we haven't finished definining ParslSerializer yet, I think
-        """ Make ParslSerializer a singleton using the fact that there's only one instance
-        of a class variable
-        """
-        if ParslSerializer.__singleton_instance is None:
-            ParslSerializer.__singleton_instance = object.__new__(cls)
-        return ParslSerializer.__singleton_instance
 
-    def __init__(self) -> None:
-        """ Instantiate the appropriate classes
-        """
-        headers = list(METHODS_MAP_CODE.keys()) + list(METHODS_MAP_DATA.keys())
-        self.header_size = len(headers[0])
+def unpack_apply_message(packed_buffer: bytes, user_ns: Any = None, copy: Any = False) -> List[Any]:
+    """ Unpack and deserialize function and parameters
 
-        self.methods_for_code = {}
-        self.methods_for_data = {}
+    """
+    return [deserialize(buf) for buf in unpack_buffers(packed_buffer)]
 
-        for key in METHODS_MAP_CODE:
-            self.methods_for_code[key] = METHODS_MAP_CODE[key]()
-            self.methods_for_code[key].enable_caching(maxsize=128)
 
-        for key in METHODS_MAP_DATA:
-            self.methods_for_data[key] = METHODS_MAP_DATA[key]()
+def serialize(obj: Any, buffer_threshold: int = int(1e6)) -> bytes:
+    """ Try available serialization methods one at a time
 
-    def _list_methods(self) -> Tuple[Dict[bytes, SerializerBase], Dict[bytes, SerializerBase]]:
-        return self.methods_for_code, self.methods_for_data
+    Individual serialization methods might raise a TypeError (eg. if objects are non serializable)
+    This method will raise the exception from the last method that was tried, if all methods fail.
+    """
+    result: Union[bytes, Exception]
+    if callable(obj):
+        for method in methods_for_code.values():
+            try:
+                result = method.serialize(obj)
+                # We attempt a deserialization to make sure both work.
+                method.deserialize(result)
+            except Exception as e:
+                result = e
+                continue
+            else:
+                break
+    else:
+        for method in methods_for_data.values():
+            try:
+                result = method.serialize(obj)
+            except Exception as e:
+                result = e
+                continue
+            else:
+                break
 
-    def pack_apply_message(self, func: Any, args: Any, kwargs: Any, buffer_threshold: int = int(128 * 1e6)) -> bytes:
-        """Serialize and pack function and parameters
-
-        Parameters
-        ----------
-
-        func: Function
-            A function to ship
-
-        args: Tuple/list of objects
-            positional parameters as a list
-
-        kwargs: Dict
-            Dict containing named parameters
-
-        buffer_threshold: Ignored
-            Limits buffer to specified size in bytes. Exceeding this limit would give you
-            a warning in the log. Default is 128MB.
-        """
-        b_func = self.serialize(func, buffer_threshold=buffer_threshold)
-        b_args = self.serialize(args, buffer_threshold=buffer_threshold)
-        b_kwargs = self.serialize(kwargs, buffer_threshold=buffer_threshold)
-        packed_buffer = self.pack_buffers([b_func, b_args, b_kwargs])
-        return packed_buffer
-
-    def unpack_apply_message(self, packed_buffer: bytes, user_ns: Any = None, copy: Any = False) -> List[Any]:
-        """ Unpack and deserialize function and parameters
-
-        """
-        return [self.deserialize(buf) for buf in self.unpack_buffers(packed_buffer)]
-
-    def serialize(self, obj: Any, buffer_threshold: int = int(1e6)) -> bytes:
-        """ Try available serialization methods one at a time
-
-        Individual serialization methods might raise a TypeError (eg. if objects are non serializable)
-        This method will raise the exception from the last method that was tried, if all methods fail.
-        """
-        result: Union[bytes, Exception]
-        if callable(obj):
-            for method in self.methods_for_code.values():
-                try:
-                    result = method.serialize(obj)
-                    # We attempt a deserialization to make sure both work.
-                    method.deserialize(result)
-                except Exception as e:
-                    result = e
-                    continue
-                else:
-                    break
-        else:
-            for method in self.methods_for_data.values():
-                try:
-                    result = method.serialize(obj)
-                except Exception as e:
-                    result = e
-                    continue
-                else:
-                    break
-
-        if isinstance(result, BaseException):
-            raise result
-        else:
-            if len(result) > buffer_threshold:
-                logger.warning(f"Serialized object exceeds buffer threshold of {buffer_threshold} bytes, this could cause overflows")
-            return result
-
-    def deserialize(self, payload: bytes) -> Any:
-        """
-        Parameters
-        ----------
-        payload : str
-           Payload object to be deserialized
-
-        """
-        header = payload[0:self.header_size]
-        if header in self.methods_for_code:
-            result = self.methods_for_code[header].deserialize(payload)
-        elif header in self.methods_for_data:
-            result = self.methods_for_data[header].deserialize(payload)
-        else:
-            raise TypeError("Invalid header: {!r} in data payload. Buffer is either corrupt or not created by ParslSerializer".format(header))
-
+    if isinstance(result, BaseException):
+        raise result
+    else:
+        if len(result) > buffer_threshold:
+            logger.warning(f"Serialized object exceeds buffer threshold of {buffer_threshold} bytes, this could cause overflows")
         return result
 
-    def pack_buffers(self, buffers: List[bytes]) -> bytes:
-        """
-        Parameters
-        ----------
-        buffers : list of \n terminated strings
-        """
-        packed = b''
-        for buf in buffers:
-            s_length = bytes(str(len(buf)) + '\n', 'utf-8')
-            packed += s_length + buf
 
-        return packed
+def deserialize(payload: bytes) -> Any:
+    """
+    Parameters
+    ----------
+    payload : str
+       Payload object to be deserialized
 
-    def unpack_buffers(self, packed_buffer: bytes) -> List[bytes]:
-        """
-        Parameters
-        ----------
-        packed_buffers : packed buffer as string
-        """
-        unpacked = []
-        while packed_buffer:
-            s_length, buf = packed_buffer.split(b'\n', 1)
-            i_length = int(s_length.decode('utf-8'))
-            current, packed_buffer = buf[:i_length], buf[i_length:]
-            unpacked.extend([current])
+    """
+    header = payload[0:header_size]
+    if header in methods_for_code:
+        result = methods_for_code[header].deserialize(payload)
+    elif header in methods_for_data:
+        result = methods_for_data[header].deserialize(payload)
+    else:
+        raise TypeError("Invalid header: {!r} in data payload. Buffer is either corrupt or not created by ParslSerializer".format(header))
 
-        return unpacked
+    return result
 
-    def unpack_and_deserialize(self, packed_buffer: bytes) -> List[Any]:
-        """ Unpacks a packed buffer and returns the deserialized contents
-        Parameters
-        ----------
-        packed_buffers : packed buffer as string
-        """
-        unpacked = []
-        while packed_buffer:
-            s_length, buf = packed_buffer.split(b'\n', 1)
-            i_length = int(s_length.decode('utf-8'))
-            current, packed_buffer = buf[:i_length], buf[i_length:]
-            deserialized = self.deserialize(current)
-            unpacked.extend([deserialized])
 
-        assert len(unpacked) == 3, "Unpack expects 3 buffers, got {}".format(len(unpacked))
+def pack_buffers(buffers: List[bytes]) -> bytes:
+    """
+    Parameters
+    ----------
+    buffers : list of \n terminated (byte?) strings
+    """
+    packed = b''
+    for buf in buffers:
+        s_length = bytes(str(len(buf)) + '\n', 'utf-8')
+        packed += s_length + buf
 
-        return unpacked
+    return packed
+
+
+def unpack_buffers(packed_buffer: bytes) -> List[bytes]:
+    """
+    Parameters
+    ----------
+    packed_buffers : packed buffer as (byte?) string
+    """
+    unpacked = []
+    while packed_buffer:
+        s_length, buf = packed_buffer.split(b'\n', 1)
+        i_length = int(s_length.decode('utf-8'))
+        current, packed_buffer = buf[:i_length], buf[i_length:]
+        unpacked.extend([current])
+
+    return unpacked
+
+
+def unpack_and_deserialize(packed_buffer: bytes) -> Any:
+    """ Unpacks a packed buffer and returns the deserialized contents
+    Only works for packings of 3 buffers - presumably because of specific use of this call?
+    Parameters
+    ----------
+    packed_buffers : packed buffer as string... apparently expecting exactly 3 buffers?
+    """
+    unpacked = []
+    while packed_buffer:
+        s_length, buf = packed_buffer.split(b'\n', 1)
+        i_length = int(s_length.decode('utf-8'))
+        current, packed_buffer = buf[:i_length], buf[i_length:]
+        deserialized = deserialize(current)
+        unpacked.extend([deserialized])
+
+    assert len(unpacked) == 3, "Unpack expects 3 buffers, got {}".format(len(unpacked))
+
+    return unpacked

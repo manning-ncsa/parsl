@@ -5,7 +5,7 @@ import datetime
 from functools import wraps
 
 from parsl.multiprocessing import ForkProcess
-from multiprocessing import Event, Process
+from multiprocessing import Event
 from parsl.process_loggers import wrap_with_logs
 
 from parsl.monitoring.message_type import MessageType
@@ -38,7 +38,7 @@ def monitor_wrapper(f: Any,
                            radio_mode,
                            run_dir)
 
-        p: Optional[Process]
+        p: Optional[ForkProcess]
         if monitor_resources:
             # create the monitor process and start
             pp = ForkProcess(target=monitor,
