@@ -7,7 +7,7 @@ from typing import List
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from parsl.dataflow.dflow import DataFlowKernel
-    from parsl.dataflow.task_status_poller import PollItem
+    from parsl.dataflow.job_status_poller import PollItem
 
 from parsl.executors.base import ParslExecutor, HasConnectedWorkers, HasOutstanding
 
