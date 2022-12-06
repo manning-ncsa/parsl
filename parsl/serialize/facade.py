@@ -71,8 +71,6 @@ def serialize(obj: Any, buffer_threshold: int = int(1e6)) -> bytes:
         for method in methods_for_code.values():
             try:
                 result = method.serialize(obj)
-                # We attempt a deserialization to make sure both work.
-                method.deserialize(result)
             except Exception as e:
                 result = e
                 continue
