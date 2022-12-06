@@ -2,6 +2,7 @@ from __future__ import annotations
 import logging
 import time
 import math
+import warnings
 from typing import List
 
 from typing import TYPE_CHECKING
@@ -151,9 +152,14 @@ class Strategy(object):
 
         self.strategies: Dict[Optional[str], Callable]
         self.strategies = {None: self._strategy_noop,
+                           'none': self._strategy_noop,
                            'simple': self._strategy_simple,
                            'htex_auto_scale': self._strategy_htex_auto_scale
                           }
+
+        if self.config.strategy is None:
+            warnings.warn("literal None for strategy choice is deprecated. Use string 'none' instead.",
+                          DeprecationWarning)
 
         # mypy note: with mypy 0.761, the type of self.strategize is
         # correctly revealed inside this module, but isn't carried over
